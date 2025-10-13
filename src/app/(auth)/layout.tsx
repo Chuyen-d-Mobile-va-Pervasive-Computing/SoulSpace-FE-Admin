@@ -1,13 +1,19 @@
 "use client";
 
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode, useState, useEffect, Fragment } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { CircleUser, List, BarChart2, FileText } from "lucide-react";
-import { LogoutButton } from "@/components/ui/logout";
+import {
+  CircleUser,
+  List,
+  BarChart2,
+  FileText,
+  ChevronDown,
+} from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { Menu, Transition } from "@headlessui/react";
 
 const navItems = [
   {
@@ -22,14 +28,73 @@ const navItems = [
   },
 ];
 
+function UserDropdown() {
+  return (
+    <Menu as="div" className="relative inline-block text-left">
+      <Menu.Button className="inline-flex items-center gap-2 rounded-md px-3 py-2 hover:bg-gray-100">
+        <img
+          src="https://i.pravatar.cc/40?img=26"
+          alt="Avatar"
+          className="h-10 w-10 rounded-full"
+        />
+
+        <div className="flex flex-col text-left">
+          <span className="text-sm font-medium">PLuynh</span>
+          <span className="text-xs text-gray-500">Admin</span>
+        </div>
+        <ChevronDown className="w-4 h-4" />
+      </Menu.Button>
+
+      <Transition
+        as={Fragment}
+        enter="transition ease-out duration-100"
+        enterFrom="transform opacity-0 scale-95"
+        enterTo="transform opacity-100 scale-100"
+        leave="transition ease-in duration-75"
+        leaveFrom="transform opacity-100 scale-100"
+        leaveTo="transform opacity-0 scale-95"
+      >
+        <Menu.Items className="absolute right-0 mt-2 w-40 origin-top-right bg-white border rounded-md shadow-lg focus:outline-none z-50">
+          <div className="py-1">
+            <Menu.Item>
+              {({ active }) => (
+                <Link
+                  href="/profile"
+                  className={cn(
+                    "block px-4 py-2 text-sm text-gray-700 hover:bg-[#E0D7F9]",
+                    active ? "bg-gray-100" : ""
+                  )}
+                >
+                  Profile
+                </Link>
+              )}
+            </Menu.Item>
+            <Menu.Item>
+              {({ active }) => (
+                <Link
+                  href="#"
+                  className={cn(
+                    "block px-4 py-2 text-sm text-gray-700 hover:bg-[#E0D7F9]",
+                    active ? "bg-gray-100" : ""
+                  )}
+                >
+                  Logout
+                </Link>
+              )}
+            </Menu.Item>
+          </div>
+        </Menu.Items>
+      </Transition>
+    </Menu>
+  );
+}
+
 function Sidebar({
   isOpen,
   onClose,
-  nhanVienId,
 }: {
   isOpen: boolean;
   onClose: () => void;
-  nhanVienId?: string;
 }) {
   const pathname = usePathname();
 
@@ -41,7 +106,7 @@ function Sidebar({
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <nav className="p-4 flex flex-col space-y-2">
+        <nav className="px-8 py-4 flex flex-col space-y-2">
           {navItems.map((item) => (
             <Link
               key={item.title}
@@ -62,12 +127,9 @@ function Sidebar({
           ))}
         </nav>
 
-        <div className="flex md:hidden items-center justify-between px-4 py-3 border-t bg-white sticky bottom-0">
-          <div className="flex items-center space-x-2">
-            <CircleUser className="h-6 w-6 text-[#1E40AF]" />
-            <span className="font-medium">Mã NV: {nhanVienId || "—"}</span>
-          </div>
-          <LogoutButton />
+        {/* User dropdown at the bottom */}
+        <div className="flex md:hidden items-center justify-center px-4 py-3 border-t bg-white sticky bottom-0">
+          <UserDropdown />
         </div>
       </aside>
       {isOpen && (
@@ -80,15 +142,9 @@ function Sidebar({
   );
 }
 
-function Header({
-  onToggleSidebar,
-  nhanVienId,
-}: {
-  onToggleSidebar: () => void;
-  nhanVienId?: string;
-}) {
+function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   return (
-    <header className="fixed top-0 left-0 w-full bg-white text-white h-16 flex items-center justify-between px-4 z-30">
+    <header className="fixed top-0 left-0 w-full bg-white h-16 flex items-center justify-between px-8 z-30 border-b">
       <div className="flex items-center min-w-0 gap-4">
         <Button
           variant="default"
@@ -104,9 +160,7 @@ function Header({
       </div>
 
       <div className="hidden md:flex items-center space-x-4">
-        <CircleUser className="h-6 w-6" />
-        <span>Mã NV: {nhanVienId || "—"}</span>
-        <LogoutButton />
+        <UserDropdown />
       </div>
     </header>
   );
@@ -114,23 +168,11 @@ function Header({
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [nhanVienId, setNhanVienId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    const user = localStorage.getItem("user");
-    if (user) {
-      try {
-        const parsed = JSON.parse(user);
-        setNhanVienId(parsed?.nhan_vien_id || parsed?.cashier_id);
-      } catch (e) {
-        console.error("Parse user failed", e);
-      }
-    }
-
     const handleResize = () => {
       setIsSidebarOpen(window.innerWidth >= 768);
     };
-
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -141,17 +183,13 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-gray-100 text-sm md:text-base">
-      <Header onToggleSidebar={toggleSidebar} nhanVienId={nhanVienId} />
+      <Header onToggleSidebar={toggleSidebar} />
       <div className="flex pt-16">
-        <Sidebar
-          isOpen={isSidebarOpen}
-          onClose={closeSidebar}
-          nhanVienId={nhanVienId}
-        />
+        <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
         <main
           className={cn(
             "flex-1 overflow-y-auto p-4 transition-all duration-300",
-            isSidebarOpen ? "ml-64" : "ml-0"
+            isSidebarOpen ? "ml-64" : "ml-4"
           )}
         >
           {children}
