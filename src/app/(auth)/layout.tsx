@@ -9,6 +9,7 @@ import {
   BarChart2,
   FileText,
   ChevronDown,
+  ScanFace,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -106,7 +107,7 @@ function Sidebar({
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <nav className="px-8 py-4 flex flex-col space-y-2">
+        <nav className="px-4 lg:px-8 py-4 flex flex-col space-y-2">
           {navItems.map((item) => (
             <Link
               key={item.title}
@@ -127,9 +128,28 @@ function Sidebar({
           ))}
         </nav>
 
-        {/* User dropdown at the bottom */}
-        <div className="flex md:hidden items-center justify-center px-4 py-3 border-t bg-white sticky bottom-0">
-          <UserDropdown />
+        {/* User section at the bottom - mobile only */}
+        <div className="md:hidden absolute bottom-0 w-full border-t bg-white px-4 lg:px-8 py-4 flex flex-col space-y-2">
+          <div className="flex items-center justify-between">
+            <Link href="/profile" className="flex items-center gap-2">
+              <img
+                src="https://i.pravatar.cc/40?img=26"
+                alt="Avatar"
+                className="h-10 w-10 rounded-full"
+              />
+              <div className="flex flex-col text-left">
+                <span className="text-sm font-medium">PLuynh</span>
+                <span className="text-xs text-gray-500">Admin</span>
+              </div>
+            </Link>
+            <Link
+              href="#"
+              className="bg-destructive flex items-center px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 !text-white"
+              onClick={onClose}
+            >
+              Logout
+            </Link>
+          </div>
         </div>
       </aside>
       {isOpen && (
@@ -144,7 +164,7 @@ function Sidebar({
 
 function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   return (
-    <header className="fixed top-0 left-0 w-full bg-white h-16 flex items-center justify-between px-8 z-30 border-b">
+    <header className="fixed top-0 left-0 w-full bg-white h-16 flex items-center justify-between px-4 lg:px-8 z-30 border-b">
       <div className="flex items-center min-w-0 gap-4">
         <Button
           variant="default"
@@ -188,7 +208,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
         <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
         <main
           className={cn(
-            "flex-1 overflow-y-auto p-4 transition-all duration-300",
+            "flex-1 overflow-y-auto p-2 lg:p-4 transition-all duration-300",
             isSidebarOpen ? "ml-64" : "ml-4"
           )}
         >
