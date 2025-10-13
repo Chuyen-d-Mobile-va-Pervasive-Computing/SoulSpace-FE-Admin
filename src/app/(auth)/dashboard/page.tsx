@@ -26,6 +26,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import LineGraph from "./components/LineGraph";
+import EmotionDistribution from "./components/EmotionDistribution";
+import PostsByTopic from "./components/PostsByTopic";
+import PostsByHashtag from "./components/PostByHastag";
+import PostsByType from "./components/PostByType";
+import MostActiveUsers from "./components/MostActiveUsers";
+import MostPositiveMembers from "./components/MostPositiveMembers";
 
 export default function Page() {
   const [date, setDate] = React.useState<Date>();
@@ -87,7 +93,9 @@ export default function Page() {
       {/* Third row */}
       <div className="w-full bg-white rounded-2xl p-4 mt-4 shadow-sm">
         <div className="w-full inline-flex flex-row items-center justify-between">
-          <h1>Post Creation Trend</h1>
+          <h1 className="text-black font-bold text-[20px]">
+            Post Creation Trend
+          </h1>
           <DropdownMenu>
             <DropdownMenuTrigger className="flex-row inline-flex items-center gap-2 border border-[#D5D5D5] rounded-[10px] py-2 px-4 text-[#2B3034] font-bold text-[16px]">
               Filter By
@@ -104,6 +112,24 @@ export default function Page() {
         <div className="p-6">
           <LineGraph />
         </div>
+      </div>
+
+      {/* Fourth row */}
+      <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <EmotionDistribution />
+        <PostsByTopic />
+      </div>
+
+      {/* Fifth row */}
+      <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <PostsByHashtag />
+        <PostsByType />
+      </div>
+
+      {/* Sixth row */}
+      <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <MostActiveUsers />
+        <MostPositiveMembers />
       </div>
     </div>
   );

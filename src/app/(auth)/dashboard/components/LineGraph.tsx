@@ -28,10 +28,6 @@ const data = [
 export default function LineGraph() {
   return (
     <div className="w-full h-[350px] bg-white dark:bg-neutral-900 rounded-2xl p-4 shadow-sm">
-      <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">
-        Engagement Rate
-      </h2>
-
       <ResponsiveContainer width="100%" height="85%">
         <LineChart
           data={data}
