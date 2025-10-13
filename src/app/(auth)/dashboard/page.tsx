@@ -3,6 +3,7 @@
 import * as React from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -16,6 +17,15 @@ import TotalUsers from "./components/TotalUsers";
 import TotalPosts from "./components/TotalPosts";
 import PositivePosts from "./components/PositivePosts";
 import FlaggedPosts from "./components/FlaggedPost";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import LineGraph from "./components/LineGraph";
 
 export default function Page() {
   const [date, setDate] = React.useState<Date>();
@@ -72,6 +82,28 @@ export default function Page() {
         <TotalPosts selectedRange={selectedRange} />
         <PositivePosts selectedRange={selectedRange} />
         <FlaggedPosts selectedRange={selectedRange} />
+      </div>
+
+      {/* Third row */}
+      <div className="w-full bg-white rounded-2xl p-4 mt-4 shadow-sm">
+        <div className="w-full inline-flex flex-row items-center justify-between">
+          <h1>Post Creation Trend</h1>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="flex-row inline-flex items-center gap-2 border border-[#D5D5D5] rounded-[10px] py-2 px-4 text-[#2B3034] font-bold text-[16px]">
+              Filter By
+              <ChevronDown color="#A8ABAD" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem>Day</DropdownMenuItem>
+              <DropdownMenuItem>Week</DropdownMenuItem>
+              <DropdownMenuItem>Month</DropdownMenuItem>
+              <DropdownMenuItem>Year</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        <div className="p-6">
+          <LineGraph />
+        </div>
       </div>
     </div>
   );
