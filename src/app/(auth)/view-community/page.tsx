@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MessageCircle, ThumbsUp, User } from "lucide-react";
+import PostDetail from "./components/PostDetail";
 
 const topics = [
   { id: 1, name: "Mental Health" },
@@ -15,7 +16,17 @@ const topics = [
   { id: 4, name: "Life Issues" },
 ];
 
-const mockPosts = [
+interface Post {
+  id: number;
+  user: string;
+  topic: string;
+  content: string;
+  likes: number;
+  comments: number;
+  created_at: string;
+}
+
+const mockPosts: Post[] = [
   {
     id: 1,
     user: "John Doe",
@@ -33,7 +44,8 @@ export default function CommunityViewPage() {
   const keyword = (searchParams.get("topic") || "").toLowerCase();
 
   const [selectedTopic, setSelectedTopic] = useState("All");
-
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
   // Tìm topic khớp từ khóa
   const matchedTopics = topics.filter((t) =>
     t.name.toLowerCase().includes(keyword)
@@ -111,7 +123,14 @@ export default function CommunityViewPage() {
         )}
 
         {filteredPosts.map((post) => (
-          <Card key={post.id} className="p-4 group relative mb-4">
+          <Card
+            key={post.id}
+            className="p-4 group relative mb-4 cursor-pointer"
+            onClick={() => {
+              setSelectedPost(post);
+              setDetailOpen(true);
+            }}
+          >
             <div className="flex items-center gap-3 mb-2">
               <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
                 <User size={20} />
@@ -121,16 +140,12 @@ export default function CommunityViewPage() {
                 <p className="text-sm text-gray-500">{post.created_at}</p>
               </div>
             </div>
-
             {/* Reveal real name */}
             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-xs bg-black text-white px-2 py-1 rounded">
               Real: {post.user}
             </div>
-
             <Badge className="mb-3">{post.topic}</Badge>
-
             <p>{post.content}</p>
-
             <div className="flex gap-4 text-sm text-gray-600 mt-3">
               <div className="flex items-center gap-1 cursor-pointer">
                 <ThumbsUp size={16} /> {post.likes}
@@ -142,6 +157,13 @@ export default function CommunityViewPage() {
           </Card>
         ))}
       </ScrollArea>
+      {selectedPost && (
+        <PostDetail
+          open={detailOpen}
+          onClose={() => setDetailOpen(false)}
+          post={selectedPost}
+        />
+      )}
     </div>
   );
 }
