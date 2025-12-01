@@ -32,6 +32,11 @@ const navItems = [
     href: "/post-moderation",
     icon: FileText,
   },
+  {
+    title: "View Community",
+    href: "/view-community",
+    icon: CircleUser,
+  },
 ];
 
 function UserDropdown() {
