@@ -10,17 +10,22 @@ import {
   FileText,
   ChevronDown,
   ScanFace,
+  BookOpen,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { Menu, Transition } from "@headlessui/react";
-
 const navItems = [
   {
     title: "Overview",
     href: "/dashboard",
     icon: BarChart2,
+  },
+  {
+    title: "Test Management",
+    href: "/test-management",
+    icon: BookOpen,
   },
   {
     title: "Post Moderation",
@@ -108,24 +113,28 @@ function Sidebar({
         )}
       >
         <nav className="px-4 lg:px-8 py-4 flex flex-col space-y-2">
-          {navItems.map((item) => (
-            <Link
-              key={item.title}
-              href={item.href}
-              className={cn(
-                "flex items-center px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100",
-                pathname === item.href
-                  ? "bg-[#7F56D9] text-white hover:bg-[#7F56D9]"
-                  : "text-gray-700"
-              )}
-              onClick={() => {
-                if (window.innerWidth < 768) onClose();
-              }}
-            >
-              <item.icon className="h-5 w-5 mr-2" />
-              {item.title}
-            </Link>
-          ))}
+          {navItems.map((item) => {
+            const isActive =
+              pathname === item.href || pathname.startsWith(item.href + "/");
+            return (
+              <Link
+                key={item.title}
+                href={item.href}
+                className={cn(
+                  "flex items-center px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100",
+                  isActive
+                    ? "bg-[#7F56D9] text-white hover:bg-[#7F56D9]"
+                    : "text-gray-700"
+                )}
+                onClick={() => {
+                  if (window.innerWidth < 768) onClose();
+                }}
+              >
+                <item.icon className="h-5 w-5 mr-2" />
+                {item.title}
+              </Link>
+            );
+          })}
         </nav>
 
         {/* User section at the bottom - mobile only */}

@@ -3,9 +3,9 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ColumnDef } from "@tanstack/react-table";
-import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { Eye } from "lucide-react";
 import { PostDetailSheet } from "./PostDetailSheet";
 
 export interface Post {
@@ -131,14 +131,7 @@ export const columns: ColumnDef<Post>[] = [
         <div className="inline-flex justify-center items-center gap-2.5">
           <PostDetailSheet
             post={post}
-            trigger={
-              <Button
-                variant="ghost"
-                className="text-blue-600 hover:underline p-0 h-auto hover:bg-transparent"
-              >
-                View details
-              </Button>
-            }
+            trigger={<Eye color="#7F56D9" className="hover:cursor-pointer" />}
           />
         </div>
       );
