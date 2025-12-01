@@ -136,7 +136,7 @@ export default function TestBuilderPage() {
       </Card>
 
       {/* API Button */}
-      <Button className="w-full mt-4">Save & Create Test</Button>
+      <Button className="w-full mt-4">Save & Update Test</Button>
     </div>
   );
 }

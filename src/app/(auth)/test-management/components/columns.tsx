@@ -89,7 +89,9 @@ export const columns: ColumnDef<Test>[] = [
       const post = row.original;
       return (
         <div className="inline-flex justify-center items-center gap-2.5">
-          <Eye color="#7F56D9" className="hover:cursor-pointer" />
+          <Link href={`/test-management/update/${post.id}`}>
+            <Eye color="#7F56D9" className="hover:cursor-pointer" />
+          </Link>
           <Trash2 color="#F44336" className="hover:cursor-pointer" />
         </div>
       );
