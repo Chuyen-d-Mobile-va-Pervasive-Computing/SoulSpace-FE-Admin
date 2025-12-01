@@ -26,6 +26,11 @@ const navItems = [
     icon: BarChart2,
   },
   {
+    title: "Expert Verify",
+    href: "/expert-verify",
+    icon: ScanFace,
+  },
+  {
     title: "Test Management",
     href: "/test-management",
     icon: BookOpen,
