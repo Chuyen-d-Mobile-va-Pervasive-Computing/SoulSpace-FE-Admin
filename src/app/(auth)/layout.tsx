@@ -11,11 +11,14 @@ import {
   ChevronDown,
   ScanFace,
   BookOpen,
+  Search,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { Menu, Transition } from "@headlessui/react";
+import { useRouter } from "next/navigation";
+import { Input } from "@/components/ui/input";
 const navItems = [
   {
     title: "Overview",
@@ -177,6 +180,18 @@ function Sidebar({
 }
 
 function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
+  const [searchTopic, setSearchTopic] = useState("");
+  const router = useRouter();
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const value = searchTopic.trim();
+    if (value === "") {
+      router.push("/view-community");
+      return;
+    }
+    router.push(`/view-community?topic=${encodeURIComponent(value)}`);
+  };
+
   return (
     <header className="fixed top-0 left-0 w-full bg-white h-16 flex items-center justify-between px-4 lg:px-8 z-30 border-b">
       <div className="flex items-center min-w-0 gap-4">
@@ -192,6 +207,20 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
           SOULSPACE
         </h1>
       </div>
+
+      {/* Center Search Bar (Facebook-style) */}
+      <form
+        onSubmit={handleSearch}
+        className="hidden md:flex items-center w-full max-w-md mx-6 relative"
+      >
+        <Search className="absolute left-3 text-gray-400 h-4 w-4" />
+        <Input
+          placeholder="Search topics..."
+          value={searchTopic}
+          onChange={(e) => setSearchTopic(e.target.value)}
+          className="pl-10 rounded-full bg-gray-100 border-gray-300 focus:ring-2 focus:ring-[#7F56D9]"
+        />
+      </form>
 
       <div className="hidden md:flex items-center space-x-4">
         <UserDropdown />
