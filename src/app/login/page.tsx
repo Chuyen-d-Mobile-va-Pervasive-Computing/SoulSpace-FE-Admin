@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+
 import {
   Form,
   FormField,
@@ -18,6 +19,9 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff } from "lucide-react";
 
+import { loginUser } from "@/lib/api";
+import { toast } from "sonner";
+
 const loginSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
   password: z
@@ -29,19 +33,26 @@ type LoginFormInputs = z.infer<typeof loginSchema>;
 
 export default function PageLogin() {
   const router = useRouter();
-  const form = useForm<LoginFormInputs>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
-  });
-
   const [showPassword, setShowPassword] = useState(false);
 
+  const form = useForm<LoginFormInputs>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
+  });
+
   const onSubmit = async (data: LoginFormInputs) => {
-    console.log("Login data:", data);
-    router.push("/dashboard");
+    try {
+      const res = await loginUser({
+        email: data.email,
+        password: data.password,
+      });
+
+      toast.success("Login successful! Redirecting...");
+
+      setTimeout(() => router.push("/dashboard"), 1000);
+    } catch (err: any) {
+      toast.error(err.message || "Login failed. Please try again.");
+    }
   };
 
   return (
@@ -55,6 +66,7 @@ export default function PageLogin() {
             height={100}
           />
         </div>
+
         <h2 className="text-2xl font-bold text-center mb-6 text-[#7F56D9]">
           LOGIN TO YOUR ACCOUNT
         </h2>
@@ -68,7 +80,7 @@ export default function PageLogin() {
               render={({ field }) => (
                 <FormItem>
                   <Label>Email</Label>
-                  <FormControl className="h-10">
+                  <FormControl>
                     <Input placeholder="Enter your email" {...field} />
                   </FormControl>
                   <FormMessage />
@@ -84,7 +96,7 @@ export default function PageLogin() {
                 <FormItem>
                   <Label>Password</Label>
                   <div className="relative">
-                    <FormControl className="h-10">
+                    <FormControl>
                       <Input
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter your password"
@@ -92,12 +104,13 @@ export default function PageLogin() {
                         className="pr-10"
                       />
                     </FormControl>
+
                     <button
                       type="button"
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
                       onClick={() => setShowPassword(!showPassword)}
                     >
-                      {!showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      {showPassword ? <Eye size={20} /> : <EyeOff size={20} />}
                     </button>
                   </div>
                   <FormMessage />
@@ -107,7 +120,7 @@ export default function PageLogin() {
 
             {/* Submit */}
             <Button
-              className="w-full h-10 bg-[#7F56D9] hover:bg-[#6b45c8]"
+              className="w-full bg-[#7F56D9] hover:bg-[#6b45c8]"
               type="submit"
             >
               Login
