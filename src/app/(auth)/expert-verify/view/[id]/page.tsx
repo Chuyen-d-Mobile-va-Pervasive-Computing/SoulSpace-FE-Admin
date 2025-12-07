@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -10,16 +11,68 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
-import { getExpertById } from "@/lib/api";
+import { getExpertById, approveExpert, rejectExpert } from "@/lib/api";
 import { toast } from "sonner";
 import ImageZoom from "@/components/ImageZoom";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 
 export default function ExpertViewPage() {
+  const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
 
   const [expert, setExpert] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  const [rejectReason, setRejectReason] = useState("");
+  const [openRejectDialog, setOpenRejectDialog] = useState(false);
+
+  const REJECT_OPTIONS = [
+    "Information is incomplete",
+    "Invalid certificate",
+    "Suspicious account activity",
+    "Unverified clinic address",
+    "Provided details do not match records",
+  ];
+
+  const handleApprove = async () => {
+    try {
+      await approveExpert(expert.profile_id);
+      toast.success("Expert approved successfully!");
+
+      setExpert((prev: any) => ({ ...prev, status: "approved" }));
+      router.push("/expert-verify");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to approve expert.");
+    }
+  };
+
+  const handleReject = async () => {
+    if (!rejectReason.trim()) {
+      toast.error("Please provide a reason.");
+      return;
+    }
+
+    try {
+      await rejectExpert(expert.profile_id, rejectReason);
+      toast.success("Expert rejected successfully!");
+
+      setExpert((prev: any) => ({ ...prev, status: "rejected" }));
+      setOpenRejectDialog(false);
+      setRejectReason("");
+      router.push("/expert-verify");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to reject expert.");
+    }
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -165,8 +218,70 @@ export default function ExpertViewPage() {
 
           {/* Buttons */}
           <section className="flex justify-end gap-4 pt-2 pb-4">
-            <Button variant="destructive">Reject</Button>
-            <Button variant="default">Approve</Button>
+            {expert.status === "pending" && (
+              <>
+                {/* Reject Dialog */}
+                <Dialog
+                  open={openRejectDialog}
+                  onOpenChange={setOpenRejectDialog}
+                >
+                  <DialogTrigger asChild>
+                    <Button variant="destructive">Reject</Button>
+                  </DialogTrigger>
+
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Reject Expert</DialogTitle>
+                    </DialogHeader>
+
+                    <p className="text-sm text-gray-600">
+                      Please provide a reason for rejection:
+                    </p>
+
+                    <Input
+                      placeholder="Enter rejection reason..."
+                      value={rejectReason}
+                      onChange={(e) => setRejectReason(e.target.value)}
+                    />
+
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {REJECT_OPTIONS.map((reason) => (
+                        <button
+                          key={reason}
+                          className="px-3 py-1 border rounded-md text-sm hover:bg-gray-100"
+                          onClick={() => setRejectReason(reason)}
+                        >
+                          {reason}
+                        </button>
+                      ))}
+                    </div>
+
+                    <DialogFooter className="mt-4">
+                      <Button
+                        variant="outline"
+                        onClick={() => setOpenRejectDialog(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button variant="destructive" onClick={handleReject}>
+                        Confirm Reject
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+
+                {/* Approve */}
+                <Button variant="default" onClick={handleApprove}>
+                  Approve
+                </Button>
+              </>
+            )}
+
+            {expert.status !== "pending" && (
+              <p className="text-gray-400 italic">
+                This expert has already been processed.
+              </p>
+            )}
           </section>
         </CardContent>
       </Card>
