@@ -47,9 +47,13 @@ export default function PageLogin() {
         password: data.password,
       });
 
+      localStorage.setItem("token", res.access_token);
+      localStorage.setItem("username", res.username);
+      localStorage.setItem("role", res.role);
+
       toast.success("Login successful! Redirecting...");
 
-      setTimeout(() => router.push("/dashboard"), 1000);
+      setTimeout(() => router.push("/dashboard"), 800);
     } catch (err: any) {
       toast.error(err.message || "Login failed. Please try again.");
     }
@@ -100,8 +104,8 @@ export default function PageLogin() {
                       <Input
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter your password"
-                        {...field}
                         className="pr-10"
+                        {...field}
                       />
                     </FormControl>
 
@@ -122,8 +126,9 @@ export default function PageLogin() {
             <Button
               className="w-full bg-[#7F56D9] hover:bg-[#6b45c8]"
               type="submit"
+              disabled={form.formState.isSubmitting}
             >
-              Login
+              {form.formState.isSubmitting ? "Logging in..." : "Login"}
             </Button>
           </form>
         </Form>

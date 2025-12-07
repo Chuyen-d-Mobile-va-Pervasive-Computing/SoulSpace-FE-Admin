@@ -47,7 +47,7 @@ const navItems = [
   },
 ];
 
-function UserDropdown() {
+function UserDropdown({ username, role }: { username: string; role: string }) {
   return (
     <Menu as="div" className="relative inline-block text-left">
       <Menu.Button className="inline-flex items-center gap-2 rounded-md px-3 py-2 hover:bg-gray-100">
@@ -58,8 +58,8 @@ function UserDropdown() {
         />
 
         <div className="flex flex-col text-left">
-          <span className="text-sm font-medium">PLuynh</span>
-          <span className="text-xs text-gray-500">Admin</span>
+          <span className="text-sm font-medium">{username}</span>
+          <span className="text-xs text-gray-500 capitalize">{role}</span>
         </div>
         <ChevronDown className="w-4 h-4" />
       </Menu.Button>
@@ -184,9 +184,18 @@ function Sidebar({
   );
 }
 
-function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
+function Header({
+  onToggleSidebar,
+  username,
+  role,
+}: {
+  onToggleSidebar: () => void;
+  username: string;
+  role: string;
+}) {
   const [searchTopic, setSearchTopic] = useState("");
   const router = useRouter();
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const value = searchTopic.trim();
@@ -228,7 +237,7 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
       </form>
 
       <div className="hidden md:flex items-center space-x-4">
-        <UserDropdown />
+        <UserDropdown username={username} role={role} />
       </div>
     </header>
   );
@@ -236,6 +245,13 @@ function Header({ onToggleSidebar }: { onToggleSidebar: () => void }) {
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [username, setUsername] = useState("");
+  const [role, setRole] = useState("");
+
+  useEffect(() => {
+    setUsername(localStorage.getItem("username") || "");
+    setRole(localStorage.getItem("role") || "");
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -251,7 +267,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-gray-100 text-sm md:text-base">
-      <Header onToggleSidebar={toggleSidebar} />
+      <Header onToggleSidebar={toggleSidebar} username={username} role={role} />
       <div className="flex pt-16">
         <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
         <main

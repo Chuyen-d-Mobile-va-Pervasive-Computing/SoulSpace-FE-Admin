@@ -7,19 +7,20 @@ import { Check, Eye, X } from "lucide-react";
 import Link from "next/link";
 
 export interface Expert {
-  id: string;
-  name: string;
-  certificate: string;
-  dob: string;
-  expertise: string;
+  user_id: string;
+  profile_id: string;
+  full_name: string;
+  date_of_birth: string;
+  years_of_experience: string;
   phone: string;
   email: string;
+  status: string;
   action: string;
 }
 
 export const columns: ColumnDef<Expert>[] = [
   {
-    accessorKey: "id",
+    accessorKey: "user_id",
     header: () => (
       <Button
         className="pl-0"
@@ -29,10 +30,10 @@ export const columns: ColumnDef<Expert>[] = [
         ID
       </Button>
     ),
-    cell: ({ row }) => <div>{row.getValue("id")}</div>,
+    cell: ({ row }) => <div>{row.getValue("user_id")}</div>,
   },
   {
-    accessorKey: "name",
+    accessorKey: "full_name",
     header: () => (
       <Button
         className="pl-0"
@@ -42,23 +43,10 @@ export const columns: ColumnDef<Expert>[] = [
         Expert Name
       </Button>
     ),
-    cell: ({ row }) => <div>{row.getValue("name")}</div>,
+    cell: ({ row }) => <div>{row.getValue("full_name")}</div>,
   },
   {
-    accessorKey: "certificate",
-    header: () => (
-      <Button
-        className="pl-0"
-        variant="ghost"
-        style={{ backgroundColor: "transparent" }}
-      >
-        Certificate
-      </Button>
-    ),
-    cell: ({ row }) => <div>{row.getValue("certificate")}</div>,
-  },
-  {
-    accessorKey: "dob",
+    accessorKey: "date_of_birth",
     header: () => (
       <Button
         className="pl-0"
@@ -68,10 +56,10 @@ export const columns: ColumnDef<Expert>[] = [
         Date of Birth
       </Button>
     ),
-    cell: ({ row }) => <div>{row.getValue("dob")}</div>,
+    cell: ({ row }) => <div>{row.getValue("date_of_birth")}</div>,
   },
   {
-    accessorKey: "expertise",
+    accessorKey: "years_of_experience",
     header: () => (
       <Button
         className="pl-0"
@@ -81,7 +69,7 @@ export const columns: ColumnDef<Expert>[] = [
         Expertise
       </Button>
     ),
-    cell: ({ row }) => <div>{row.getValue("expertise")}</div>,
+    cell: ({ row }) => <div>{row.getValue("years_of_experience")}</div>,
   },
   {
     accessorKey: "phone",
@@ -110,13 +98,41 @@ export const columns: ColumnDef<Expert>[] = [
     cell: ({ row }) => <div>{row.getValue("email")}</div>,
   },
   {
+    accessorKey: "status",
+    header: () => (
+      <Button
+        className="pl-0"
+        variant="ghost"
+        style={{ backgroundColor: "transparent" }}
+      >
+        Status
+      </Button>
+    ),
+    cell: ({ row }) => {
+      const status = row.getValue("status") as string;
+
+      const color =
+        status === "approved"
+          ? "text-green-600 bg-green-100"
+          : status === "pending"
+            ? "text-yellow-600 bg-yellow-100"
+            : "text-red-600 bg-red-100";
+
+      return (
+        <span className={`px-2 py-1 rounded-md text-sm font-medium ${color}`}>
+          {status}
+        </span>
+      );
+    },
+  },
+  {
     id: "action",
     header: "Action",
     cell: ({ row }) => {
       const expert = row.original;
       return (
         <div className="inline-flex justify-center items-center gap-2.5">
-          <Link href={`/expert-verify/view/${expert.id}`}>
+          <Link href={`/expert-verify/view/${expert.profile_id}`}>
             <Eye color="#7F56D9" className="hover:cursor-pointer" />
           </Link>
         </div>
