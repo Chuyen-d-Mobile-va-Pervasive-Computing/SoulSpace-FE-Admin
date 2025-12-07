@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { columns } from "./components/columns";
-import { tests } from "./data/test-data";
 import { DataTable } from "./components/data-table";
 import type { Test } from "./components/columns";
+import { getAllTests } from "@/lib/api";
 
 export default function Page() {
   const [data, setData] = useState<Test[]>([]);
@@ -12,15 +12,21 @@ export default function Page() {
   const [error, setError] = useState<string | undefined>(undefined);
 
   useEffect(() => {
-    try {
-      setTimeout(() => {
-        setData(tests);
+    const fetchTests = async () => {
+      try {
+        setIsLoading(true);
+
+        const res = await getAllTests();
+
+        setData(res);
+      } catch (err: any) {
+        setError(err.message || "Failed to load tests");
+      } finally {
         setIsLoading(false);
-      }, 500);
-    } catch (err) {
-      setError("Failed to load tests");
-      setIsLoading(false);
-    }
+      }
+    };
+
+    fetchTests();
   }, []);
 
   return (

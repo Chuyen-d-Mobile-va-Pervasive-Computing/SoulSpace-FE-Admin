@@ -8,17 +8,17 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 export interface Test {
-  id: string;
+  _id: string;
   test_code: string;
-  test_name: string;
-  num_questions: number;
+  title: string;
+  questions?: any[];
   severe_threshold: number;
   action: string;
 }
 
 export const columns: ColumnDef<Test>[] = [
   {
-    accessorKey: "id",
+    accessorKey: "_id",
     header: () => (
       <Button
         className="pl-0"
@@ -28,7 +28,7 @@ export const columns: ColumnDef<Test>[] = [
         ID
       </Button>
     ),
-    cell: ({ row }) => <div>{row.getValue("id")}</div>,
+    cell: ({ row }) => <div>{row.getValue("_id")}</div>,
   },
   {
     accessorKey: "test_code",
@@ -44,7 +44,7 @@ export const columns: ColumnDef<Test>[] = [
     cell: ({ row }) => <div>{row.getValue("test_code")}</div>,
   },
   {
-    accessorKey: "test_name",
+    accessorKey: "title",
     header: () => (
       <Button
         className="pl-0"
@@ -54,20 +54,15 @@ export const columns: ColumnDef<Test>[] = [
         Test Name
       </Button>
     ),
-    cell: ({ row }) => <div>{row.getValue("test_name")}</div>,
+    cell: ({ row }) => <div>{row.getValue("title")}</div>,
   },
   {
-    accessorKey: "num_questions",
-    header: () => (
-      <Button
-        className="pl-0"
-        variant="ghost"
-        style={{ backgroundColor: "transparent" }}
-      >
-        Number of Questions
-      </Button>
-    ),
-    cell: ({ row }) => <div>{row.getValue("num_questions")}</div>,
+    id: "num_questions",
+    header: "Number of Questions",
+    cell: ({ row }) => {
+      const questions = row.original.questions || [];
+      return <div>{questions.length}</div>;
+    },
   },
   {
     accessorKey: "severe_threshold",
@@ -89,7 +84,7 @@ export const columns: ColumnDef<Test>[] = [
       const post = row.original;
       return (
         <div className="inline-flex justify-center items-center gap-2.5">
-          <Link href={`/test-management/update/${post.id}`}>
+          <Link href={`/test-management/update/${post._id}`}>
             <Eye color="#7F56D9" className="hover:cursor-pointer" />
           </Link>
           <Trash2 color="#F44336" className="hover:cursor-pointer" />

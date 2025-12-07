@@ -55,7 +55,7 @@ export const loginUser = (payload: { email: string; password: string }) =>
     body: JSON.stringify(payload),
   });
 
-  export const getAllExperts = () =>
+export const getAllExperts = () =>
   api("/api/v1/admin/experts/all", {
     method: "GET",
     headers: {
@@ -71,7 +71,7 @@ export const getExpertById = (profile_id: string) =>
     },
   });
 
-  export const approveExpert = (profile_id: string) =>
+export const approveExpert = (profile_id: string) =>
   api(`/api/v1/admin/experts/${profile_id}/approve`, {
     method: "POST",
     headers: {
@@ -82,6 +82,14 @@ export const getExpertById = (profile_id: string) =>
 export const rejectExpert = (profile_id: string, reason: string) =>
   api(`/api/v1/admin/experts/${profile_id}/reject?reason=${encodeURIComponent(reason)}`, {
     method: "POST",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+
+export const getAllTests = () =>
+  api("/api/v1/admin/tests", {
+    method: "GET",
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
