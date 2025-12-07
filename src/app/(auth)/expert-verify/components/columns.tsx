@@ -124,6 +124,10 @@ export const columns: ColumnDef<Expert>[] = [
         </span>
       );
     },
+    enableColumnFilter: true,
+    filterFn: (row, id, value) => {
+      return value === "" || row.getValue(id) === value;
+    },
   },
   {
     id: "action",
