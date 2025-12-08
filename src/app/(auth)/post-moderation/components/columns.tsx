@@ -4,134 +4,110 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import { Eye } from "lucide-react";
-import { PostDetailSheet } from "./PostDetailSheet";
+import { PostDetailSheet } from "./PostDetailSheet"; // nếu bạn có sheet này
 
-export interface Post {
-  id: string;
-  date: string;
-  post_review: string;
-  ai_analysis: string;
-  report_count: number;
+// === MATCH API /api/v1/admin/reports ===
+// (Theo file JSON bạn upload)
+export interface Report {
+  _id: string;
+  reporter_id: string;
+  target_id: string;
+  target_type: string;
+  reason: string;
   status: string;
-  action: string;
+  created_at: string;
 }
 
-export const columns: ColumnDef<Post>[] = [
+export const columns: ColumnDef<Report>[] = [
   {
-    accessorKey: "id",
+    accessorKey: "_id",
     header: () => (
-      <Button
-        className="pl-0"
-        variant="ghost"
-        style={{ backgroundColor: "transparent" }}
-      >
+      <Button variant="ghost" className="pl-0 bg-transparent">
         ID
       </Button>
     ),
-    cell: ({ row }) => <div>{row.getValue("id")}</div>,
+    cell: ({ row }) => <div>{row.getValue("_id")}</div>,
   },
+
   {
-    accessorKey: "date",
+    accessorKey: "reporter_id",
     header: () => (
-      <Button
-        className="pl-0"
-        variant="ghost"
-        style={{ backgroundColor: "transparent" }}
-      >
-        DATE
+      <Button variant="ghost" className="pl-0 bg-transparent">
+        Reporter
       </Button>
     ),
-    cell: ({ row }) => <div>{row.getValue("date")}</div>,
+    cell: ({ row }) => <div>{row.getValue("reporter_id")}</div>,
   },
+
   {
-    accessorKey: "post_review",
+    accessorKey: "target_id",
     header: () => (
-      <Button
-        className="pl-0"
-        variant="ghost"
-        style={{ backgroundColor: "transparent" }}
-      >
-        POST REVIEW
+      <Button variant="ghost" className="pl-0 bg-transparent">
+        Target
+      </Button>
+    ),
+    cell: ({ row }) => <div>{row.getValue("target_id")}</div>,
+  },
+
+  {
+    accessorKey: "reason",
+    header: () => (
+      <Button variant="ghost" className="pl-0 bg-transparent">
+        Reason
       </Button>
     ),
     cell: ({ row }) => {
-      const value = row.getValue("post_review") as string;
-      const truncated =
-        value.length > 20 ? value.substring(0, 20).trim() + "..." : value;
-      return <div title={value}>{truncated}</div>;
+      const text = row.getValue("reason") as string;
+      const truncated = text.length > 20 ? text.slice(0, 20) + "..." : text;
+      return <div title={text}>{truncated}</div>;
     },
   },
-  {
-    accessorKey: "ai_analysis",
-    header: () => (
-      <Button
-        className="pl-0"
-        variant="ghost"
-        style={{ backgroundColor: "transparent" }}
-      >
-        AI ANALYSIS
-      </Button>
-    ),
-    cell: ({ row }) => {
-      const value = row.getValue("ai_analysis") as string;
 
-      let badgeColor = "bg-[#CCF0EB] text-[#00B69B] border-none"; // default
-      if (value === "Negative/Medium")
-        badgeColor = "bg-[#FFEACC] text-[#FF9800] border-none";
-      if (value === "Negative/High")
-        badgeColor = "bg-[#FFE5E5] text-[#FF6B6B] border-none";
-
-      return <Badge className={badgeColor}>{value}</Badge>;
-    },
-  },
-  {
-    accessorKey: "report_count",
-    header: () => (
-      <Button
-        className="pl-0"
-        variant="ghost"
-        style={{ backgroundColor: "transparent" }}
-      >
-        REPORT
-      </Button>
-    ),
-    cell: ({ row }) => <div>{row.getValue("report_count")}</div>,
-  },
   {
     accessorKey: "status",
     header: () => (
-      <Button
-        className="pl-0"
-        variant="ghost"
-        style={{ backgroundColor: "transparent" }}
-      >
-        STATUS
+      <Button variant="ghost" className="pl-0 bg-transparent">
+        Status
       </Button>
     ),
     cell: ({ row }) => {
       const value = row.getValue("status") as string;
 
-      let badgeColor = "bg-[#CCF0EB] text-[#00B69B] border-none"; // default Approved
-      if (value === "Pending")
-        badgeColor = "bg-[#FFEACC] text-[#FF9800] border-none";
-      if (value === "AI Flagged")
-        badgeColor = "bg-[#FFE5E5] text-[#FF6B6B] border-none";
+      let badge = "bg-[#E0F7FA] text-[#00796B]"; // default
+      if (value === "pending") badge = "bg-[#FFF4CC] text-[#E6A100]";
+      if (value === "resolved") badge = "bg-[#CCF0EB] text-[#009688]";
 
-      return <Badge className={badgeColor}>{value}</Badge>;
+      return <Badge className={`${badge} border-none`}>{value}</Badge>;
     },
   },
+
+  {
+    accessorKey: "created_at",
+    header: () => (
+      <Button variant="ghost" className="pl-0 bg-transparent">
+        Created At
+      </Button>
+    ),
+    cell: ({ row }) => {
+      const dt = new Date(
+        row.getValue("created_at") as string
+      ).toLocaleString();
+      return <div>{dt}</div>;
+    },
+  },
+
   {
     id: "action",
     header: "Action",
     cell: ({ row }) => {
-      const post = row.original;
+      const report = row.original;
+
       return (
-        <div className="inline-flex justify-center items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <PostDetailSheet
-            post={post}
-            trigger={<Eye color="#7F56D9" className="hover:cursor-pointer" />}
+            trigger={<Eye color="#7F56D9" className="cursor-pointer" />}
+            post={report}
           />
         </div>
       );

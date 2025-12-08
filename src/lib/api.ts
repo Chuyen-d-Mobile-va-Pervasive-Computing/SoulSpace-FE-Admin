@@ -154,8 +154,15 @@ export const uploadTestImage = async (file: File, token: string) => {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
-      // ❗ Không set Content-Type ở đây
     },
     body: formData,
   });
 };
+
+export const getAllReports = () =>
+  api("/api/v1/admin/reports", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
