@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Plus, Trash2 } from "lucide-react";
-import { createTest, getAllTests } from "@/lib/api";
+import { createTest, getAllTests, uploadTestImage } from "@/lib/api";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -54,6 +54,17 @@ export default function TestBuilderPage() {
     if (field === "text" && typeof value === "string") {
       updated[index].text = value;
       setQuestions(updated);
+    }
+  };
+  const handleUploadImage = async (file: File) => {
+    try {
+      const token = localStorage.getItem("token") || "";
+      const res = await uploadTestImage(file, token);
+
+      setImageUrl(res.url);
+      toast.success("Image uploaded!");
+    } catch (err: any) {
+      toast.error(err.message || "Upload failed");
     }
   };
 
@@ -212,9 +223,12 @@ export default function TestBuilderPage() {
 
           <label className="font-medium text-sm">Image URL</label>
           <Input
-            placeholder="Image URL (Link online)"
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) handleUploadImage(file);
+            }}
           />
         </CardContent>
       </Card>

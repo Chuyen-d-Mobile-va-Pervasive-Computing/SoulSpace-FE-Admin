@@ -3,10 +3,13 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_PATH;
 
 export async function api(path: string, options: RequestInit = {}) {
   try {
+    const isFormData = options.body instanceof FormData;
+
     const res = await fetch(`${BASE_URL}${path}`, {
       ...options,
       headers: {
-        "Content-Type": "application/json",
+        // ❗ Chỉ set JSON khi KHÔNG phải upload file
+        ...(isFormData ? {} : { "Content-Type": "application/json" }),
         ...(options.headers || {}),
       },
     });
@@ -134,7 +137,6 @@ export const changePassword = (payload: {
     body: JSON.stringify(payload),
   });
 
-
 export const deleteTestById = (test_id: string, token: string) =>
   api(`/api/v1/admin/tests/${test_id}`, {
     method: "DELETE",
@@ -142,3 +144,18 @@ export const deleteTestById = (test_id: string, token: string) =>
       Authorization: `Bearer ${token}`,
     },
   });
+
+// === UPLOAD TEST IMAGE ===
+export const uploadTestImage = async (file: File, token: string) => {
+  const formData = new FormData();
+  formData.append("file", file); // ❗ KEY phải đúng là "file"
+
+  return api("/api/v1/upload/admin/test-image", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      // ❗ Không set Content-Type ở đây
+    },
+    body: formData,
+  });
+};
