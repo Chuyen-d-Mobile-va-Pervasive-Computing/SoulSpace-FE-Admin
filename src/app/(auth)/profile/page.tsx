@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, EyeOff, Lock } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { changePassword } from "@/lib/api";
 
 export default function ChangePasswordPage() {
   const [oldPassword, setOldPassword] = useState("");
@@ -14,8 +15,9 @@ export default function ChangePasswordPage() {
   const [showOld, setShowOld] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (newPassword.length < 6) {
@@ -28,7 +30,24 @@ export default function ChangePasswordPage() {
       return;
     }
 
-    toast.success("Password changed successfully!");
+    setLoading(true);
+    try {
+      await changePassword({
+        old_password: oldPassword,
+        new_password: newPassword,
+        confirm_password: confirmPassword,
+      });
+
+      toast.success("Password changed successfully!");
+
+      setOldPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to change password");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -42,7 +61,7 @@ export default function ChangePasswordPage() {
           <h1 className="text-2xl font-semibold">Change Password</h1>
         </div>
 
-        {/* Mật khẩu cũ */}
+        {/* OLD PASSWORD */}
         <div className="space-y-1">
           <Label htmlFor="oldPassword">Old Password</Label>
           <div className="relative">
@@ -65,7 +84,7 @@ export default function ChangePasswordPage() {
           </div>
         </div>
 
-        {/* Mật khẩu mới */}
+        {/* NEW PASSWORD */}
         <div className="space-y-1">
           <Label htmlFor="newPassword">New Password</Label>
           <div className="relative">
@@ -88,7 +107,7 @@ export default function ChangePasswordPage() {
           </div>
         </div>
 
-        {/* Nhập lại mật khẩu */}
+        {/* CONFIRM PASSWORD */}
         <div className="space-y-1">
           <Label htmlFor="confirmPassword">Confirm New Password</Label>
           <div className="relative">
@@ -111,8 +130,8 @@ export default function ChangePasswordPage() {
           </div>
         </div>
 
-        <Button type="submit" className="w-full h-10 mt-4">
-          Reset Password
+        <Button type="submit" disabled={loading} className="w-full h-10 mt-4">
+          {loading ? "Processing..." : "Reset Password"}
         </Button>
       </form>
     </div>

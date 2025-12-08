@@ -94,3 +94,42 @@ export const getAllTests = () =>
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
   });
+
+export const getTestById = (test_id: string, token: string) =>
+  api(`/api/v1/admin/tests/${test_id}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+
+export const updateTestById = (test_id: string, payload: any, token: string) =>
+  api(`/api/v1/admin/tests/${test_id}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+export const createTest = (payload: any) =>
+  api("/api/v1/admin/tests", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+    body: JSON.stringify(payload),
+  });
+
+export const changePassword = (payload: {
+  old_password: string;
+  new_password: string;
+  confirm_password: string;
+}) =>
+  api("/api/v1/auth/change-password", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+    body: JSON.stringify(payload),
+  });
