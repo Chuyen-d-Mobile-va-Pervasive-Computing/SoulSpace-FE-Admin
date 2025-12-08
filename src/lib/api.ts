@@ -148,7 +148,7 @@ export const deleteTestById = (test_id: string, token: string) =>
 // === UPLOAD TEST IMAGE ===
 export const uploadTestImage = async (file: File, token: string) => {
   const formData = new FormData();
-  formData.append("file", file); // ❗ KEY phải đúng là "file"
+  formData.append("file", file);
 
   return api("/api/v1/upload/admin/test-image", {
     method: "POST",
@@ -164,5 +164,17 @@ export const getAllReports = () =>
     method: "GET",
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+
+export const resolveReport = async (
+  report_id: string,
+  action: "delete_content" | "warn_user" | "dismiss",
+  token: string
+) =>
+  api(`/api/v1/admin/reports/${report_id}/resolve?action=${action}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${token}`,
     },
   });

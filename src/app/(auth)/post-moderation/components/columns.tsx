@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Eye } from "lucide-react";
-import { PostDetailSheet } from "./PostDetailSheet"; // nếu bạn có sheet này
+import { ReportDetailSheet } from "./PostDetailSheet"; // nếu bạn có sheet này
 
 // === MATCH API /api/v1/admin/reports ===
 // (Theo file JSON bạn upload)
@@ -105,9 +105,9 @@ export const columns: ColumnDef<Report>[] = [
 
       return (
         <div className="flex items-center gap-2">
-          <PostDetailSheet
+          <ReportDetailSheet
             trigger={<Eye color="#7F56D9" className="cursor-pointer" />}
-            post={report}
+            report={report}
           />
         </div>
       );
