@@ -133,3 +133,12 @@ export const changePassword = (payload: {
     },
     body: JSON.stringify(payload),
   });
+
+
+export const deleteTestById = (test_id: string, token: string) =>
+  api(`/api/v1/admin/tests/${test_id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
