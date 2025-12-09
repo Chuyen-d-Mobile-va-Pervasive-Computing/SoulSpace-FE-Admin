@@ -77,6 +77,7 @@ export const columns: ColumnDef<Report>[] = [
       let badge = "bg-[#E0F7FA] text-[#00796B]"; // default
       if (value === "pending") badge = "bg-[#FFF4CC] text-[#E6A100]";
       if (value === "resolved") badge = "bg-[#CCF0EB] text-[#009688]";
+      if (value === "dismissed") badge = "bg-[#FCE8E6] text-[#C62828]";
 
       return <Badge className={`${badge} border-none`}>{value}</Badge>;
     },

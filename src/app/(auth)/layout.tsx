@@ -12,6 +12,7 @@ import {
   ScanFace,
   BookOpen,
   Search,
+  Check,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -39,6 +40,11 @@ const navItems = [
     title: "Post Moderation",
     href: "/post-moderation",
     icon: FileText,
+  },
+  {
+    title: "Expert Review",
+    href: "/expert-review",
+    icon: Check,
   },
   {
     title: "View Community",

@@ -27,6 +27,7 @@ import { CirclePlus, PlusCircle, Search } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { DataTablePagination } from "./data-pagination";
 import { TableFilter } from "./table-filter";
+import { StatusFilter } from "./status-filter";
 import Link from "next/link";
 
 interface DataTableProps<TData extends object, TValue> {
@@ -50,15 +51,6 @@ export function DataTable<TData extends object, TValue>({
   const path = usePathname();
 
   const [globalFilter, setGlobalFilter] = React.useState("");
-  const globalFilterFn = <TData extends object>(
-    row: Row<TData>,
-    columnId: string,
-    filterValue: string
-  ) => {
-    return Object.values(row.original).some((value) =>
-      String(value).toLowerCase().includes(filterValue.toLowerCase())
-    );
-  };
 
   const table = useReactTable({
     data,
@@ -67,24 +59,25 @@ export function DataTable<TData extends object, TValue>({
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    filterFns: { global: globalFilterFn }, // Dùng bộ lọc toàn cục
     onColumnFiltersChange: setColumnFilters,
-    onGlobalFilterChange: setGlobalFilter, // Cập nhật giá trị tìm kiếm
+    onSortingChange: setSorting,
+    onGlobalFilterChange: setGlobalFilter,
     state: {
       sorting,
       columnFilters,
-      globalFilter, // Thêm state này vào bảng
+      globalFilter,
     },
   });
 
   return (
     <div>
       <div className="w-full flex items-center justify-between mb-[20px] mt-[10px] h-[60px]">
-        <div className="flex justify-end items-center h-full">
+        <div className="flex justify-end items-center h-full gap-3">
           <div className="relative h-full flex items-center">
             <TableFilter table={table} />
             <Search className="absolute right-2 top-1/3 transform -translate-y-1 text-gray-500" />
           </div>
+          <StatusFilter table={table} />
         </div>
 
         <div className="flex justify-start">
