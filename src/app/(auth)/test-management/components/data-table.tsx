@@ -23,7 +23,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { CirclePlus, PlusCircle, Search } from "lucide-react";
+import { CirclePlus, PlusCircle } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { DataTablePagination } from "./data-pagination";
 import { TableFilter } from "./table-filter";
@@ -80,10 +80,7 @@ export function DataTable<TData extends object, TValue>({
     <div>
       <div className="w-full flex items-center justify-between mb-[20px] mt-[10px] h-[60px]">
         <div className="flex justify-end items-center h-full">
-          <div className="relative h-full flex items-center">
-            <TableFilter table={table} />
-            <Search className="absolute right-2 top-1/3 transform -translate-y-1 text-gray-500" />
-          </div>
+          <TableFilter table={table} />
         </div>
 
         <div className="flex justify-start">

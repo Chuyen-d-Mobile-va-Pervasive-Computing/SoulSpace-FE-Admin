@@ -83,7 +83,6 @@ export function DataTable<TData extends object, TValue>({
         <div className="flex justify-end items-center h-full">
           <div className="relative h-full flex items-center">
             <TableFilter table={table} />
-            <Search className="absolute right-2 top-1/3 transform -translate-y-1 text-gray-500" />
           </div>
         </div>
 
