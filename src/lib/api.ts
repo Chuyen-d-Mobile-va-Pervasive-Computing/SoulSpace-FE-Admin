@@ -178,3 +178,17 @@ export const resolveReport = async (
       Authorization: `Bearer ${token}`,
     },
   });
+
+export const getDashboardStats = (period: string, date?: string) => {
+  const query = date
+    ? `date=${date}`
+    : `period=${period}`;
+
+  return api(`/api/v1/admin/stats?${query}`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+};
+

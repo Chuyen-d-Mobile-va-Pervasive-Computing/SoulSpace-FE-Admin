@@ -15,7 +15,7 @@ import {
 
 import TotalUsers from "./components/TotalUsers";
 import TotalPosts from "./components/TotalPosts";
-import PositivePosts from "./components/PositivePosts";
+import TotalComments from "./components/TotalComments";
 import FlaggedPosts from "./components/FlaggedPost";
 import {
   DropdownMenu,
@@ -34,7 +34,7 @@ import MostActiveUsers from "./components/MostActiveUsers";
 import MostPositiveMembers from "./components/MostPositiveMembers";
 
 export default function Page() {
-  const [date, setDate] = React.useState<Date>();
+  const [date, setDate] = React.useState<Date>(new Date());
   const [selectedRange, setSelectedRange] = React.useState<
     "Day" | "Week" | "Month" | "Year"
   >("Day");
@@ -45,6 +45,8 @@ export default function Page() {
     "Month",
     "Year",
   ];
+
+  const formattedDate = date ? format(date, "yyyy-MM-dd") : "";
 
   return (
     <div className="w-full flex-col">
@@ -62,7 +64,12 @@ export default function Page() {
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0">
-            <Calendar mode="single" selected={date} onSelect={setDate} />
+            <Calendar
+              mode="single"
+              required={true}
+              selected={date}
+              onSelect={setDate}
+            />
           </PopoverContent>
         </Popover>
 
@@ -84,10 +91,10 @@ export default function Page() {
 
       {/* Second row */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
-        <TotalUsers selectedRange={selectedRange} />
-        <TotalPosts selectedRange={selectedRange} />
-        <PositivePosts selectedRange={selectedRange} />
-        <FlaggedPosts selectedRange={selectedRange} />
+        <TotalUsers selectedRange={selectedRange} date={formattedDate} />
+        <TotalPosts selectedRange={selectedRange} date={formattedDate} />
+        <TotalComments selectedRange={selectedRange} date={formattedDate} />
+        <FlaggedPosts selectedRange={selectedRange} date={formattedDate} />
       </div>
 
       {/* Third row */}
