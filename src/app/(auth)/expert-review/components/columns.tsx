@@ -3,68 +3,65 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ColumnDef } from "@tanstack/react-table";
-import { Check, Eye, X } from "lucide-react";
-import Link from "next/link";
+import { Eye } from "lucide-react";
+import { useRouter } from "next/navigation";
 
-export interface ExpertPost {
-  user_id: string;
-  profile_id: string;
-  full_name: string;
+export interface ExpertArticle {
+  _id: string;
+  expert_id: string;
+  title: string;
   content: string;
-  img: string;
-  post_img: string;
+  image_url: string;
   status: string;
-  action: string;
+  created_at: string;
+  approved_at: string | null;
 }
 
-export const columns: ColumnDef<ExpertPost>[] = [
+export const columns: ColumnDef<ExpertArticle>[] = [
   {
-    accessorKey: "user_id",
+    accessorKey: "_id",
     header: () => (
-      <Button
-        className="pl-0"
-        variant="ghost"
-        style={{ backgroundColor: "transparent" }}
-      >
+      <Button className="pl-0" variant="ghost">
         ID
       </Button>
     ),
-    cell: ({ row }) => <div>{row.getValue("user_id")}</div>,
+    cell: ({ row }) => <div>{row.getValue("_id")}</div>,
   },
+
   {
-    accessorKey: "full_name",
+    accessorKey: "expert_id",
     header: () => (
-      <Button
-        className="pl-0"
-        variant="ghost"
-        style={{ backgroundColor: "transparent" }}
-      >
-        Expert Name
+      <Button className="pl-0" variant="ghost">
+        Expert ID
       </Button>
     ),
-    cell: ({ row }) => <div>{row.getValue("full_name")}</div>,
+    cell: ({ row }) => <div>{row.getValue("expert_id")}</div>,
   },
+
+  {
+    accessorKey: "title",
+    header: () => (
+      <Button className="pl-0" variant="ghost">
+        Title
+      </Button>
+    ),
+    cell: ({ row }) => <div>{row.getValue("title")}</div>,
+  },
+
   {
     accessorKey: "content",
     header: () => (
-      <Button
-        className="pl-0"
-        variant="ghost"
-        style={{ backgroundColor: "transparent" }}
-      >
+      <Button className="pl-0" variant="ghost">
         Content
       </Button>
     ),
     cell: ({ row }) => <div>{row.getValue("content")}</div>,
   },
+
   {
     accessorKey: "status",
     header: () => (
-      <Button
-        className="pl-0"
-        variant="ghost"
-        style={{ backgroundColor: "transparent" }}
-      >
+      <Button className="pl-0" variant="ghost">
         Status
       </Button>
     ),
@@ -84,21 +81,34 @@ export const columns: ColumnDef<ExpertPost>[] = [
         </span>
       );
     },
-    enableColumnFilter: true,
-    filterFn: (row, id, value) => {
-      return value === "" || row.getValue(id) === value;
-    },
   },
+
+  {
+    accessorKey: "created_at",
+    header: () => (
+      <Button className="pl-0" variant="ghost">
+        Created At
+      </Button>
+    ),
+    cell: ({ row }) =>
+      new Date(row.getValue("created_at") as string).toLocaleString(),
+  },
+
   {
     id: "action",
     header: "Action",
     cell: ({ row }) => {
-      const expert = row.original;
+      const article = row.original;
+      const router = useRouter();
       return (
-        <div className="inline-flex justify-center items-center gap-2.5">
-          <Link href={`/expert-review/view/${expert.profile_id}`}>
-            <Eye color="#7F56D9" className="hover:cursor-pointer" />
-          </Link>
+        <div className="inline-flex items-center gap-2.5">
+          <Eye
+            color="#7F56D9"
+            className="cursor-pointer"
+            onClick={() => {
+              router.push(`/expert-review/view/${article._id}`);
+            }}
+          />
         </div>
       );
     },

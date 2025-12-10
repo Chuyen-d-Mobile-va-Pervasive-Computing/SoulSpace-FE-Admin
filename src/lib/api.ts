@@ -192,3 +192,21 @@ export const getDashboardStats = (period: string, date?: string) => {
   });
 };
 
+export const getPendingExpertArticles = async () =>
+  api("/api/v1/admin/expert-articles/pending", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+
+export const updateExpertArticleStatus = async (
+  article_id: string,
+  status: "approved" | "rejected"
+) =>
+  api(`/api/v1/admin/expert-articles/${article_id}/status?status=${status}`, {
+    method: "PUT",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });

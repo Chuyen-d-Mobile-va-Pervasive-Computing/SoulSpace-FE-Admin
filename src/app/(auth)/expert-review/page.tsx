@@ -2,19 +2,28 @@
 
 import { useEffect, useState } from "react";
 import { DataTable } from "./components/data-table";
-import { columns } from "./components/columns";
-import { ExpertPost } from "./components/columns";
-import { posts } from "./data/expert-data";
+import { columns, ExpertArticle } from "./components/columns";
+import { getPendingExpertArticles } from "@/lib/api";
 
 export default function Page() {
-  const [data, setData] = useState<ExpertPost[]>([]);
+  const [data, setData] = useState<ExpertArticle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | undefined>(undefined);
 
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
+      const res = await getPendingExpertArticles();
+      setData(res);
+    } catch (err) {
+      setError("Failed to load expert articles");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // Sử dụng dữ liệu mock từ expert-data
-    setData(posts);
-    setIsLoading(false);
+    fetchData();
   }, []);
 
   return (

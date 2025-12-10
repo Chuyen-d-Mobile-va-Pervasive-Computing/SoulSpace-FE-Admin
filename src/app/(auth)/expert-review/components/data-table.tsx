@@ -22,13 +22,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { CirclePlus, PlusCircle } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { DataTablePagination } from "./data-pagination";
 import { TableFilter } from "./table-filter";
-import { StatusFilter } from "./status-filter";
-import Link from "next/link";
 
 interface DataTableProps<TData extends object, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -74,7 +70,6 @@ export function DataTable<TData extends object, TValue>({
       <div className="w-full flex items-center justify-between mb-[20px] mt-[10px] h-[60px]">
         <div className="flex justify-end items-center h-full gap-3">
           <TableFilter table={table} />
-          <StatusFilter table={table} />
         </div>
 
         <div className="flex justify-start">
