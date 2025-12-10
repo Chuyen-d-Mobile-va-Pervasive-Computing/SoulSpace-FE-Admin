@@ -145,7 +145,7 @@ export const deleteTestById = (test_id: string, token: string) =>
     },
   });
 
-// === UPLOAD TEST IMAGE ===
+// UPLOAD TEST IMAGE
 export const uploadTestImage = async (file: File, token: string) => {
   const formData = new FormData();
   formData.append("file", file);

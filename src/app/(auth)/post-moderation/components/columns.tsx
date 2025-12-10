@@ -6,8 +6,6 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Eye } from "lucide-react";
 import { ReportDetailSheet } from "./PostDetailSheet"; // nếu bạn có sheet này
-
-// === MATCH API /api/v1/admin/reports ===
 // (Theo file JSON bạn upload)
 export interface Report {
   _id: string;
@@ -19,7 +17,9 @@ export interface Report {
   created_at: string;
 }
 
-export const columns: ColumnDef<Report>[] = [
+export const columns: (refreshData?: () => void) => ColumnDef<Report>[] = (
+  refreshData
+) => [
   {
     accessorKey: "_id",
     header: () => (
@@ -107,8 +107,9 @@ export const columns: ColumnDef<Report>[] = [
       return (
         <div className="flex items-center gap-2">
           <ReportDetailSheet
-            trigger={<Eye color="#7F56D9" className="cursor-pointer" />}
             report={report}
+            trigger={<Eye color="#7F56D9" className="cursor-pointer" />}
+            onUpdated={() => refreshData?.()}
           />
         </div>
       );
