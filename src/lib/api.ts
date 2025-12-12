@@ -1,40 +1,41 @@
 // lib/api.ts
 const BASE_URL = process.env.NEXT_PUBLIC_API_PATH;
 
-export async function api(path: string, options: RequestInit = {}) {
+export async function api<T = any>(
+  path: string,
+  options: RequestInit = {}
+): Promise<T> {
   try {
     const isFormData = options.body instanceof FormData;
 
     const res = await fetch(`${BASE_URL}${path}`, {
       ...options,
       headers: {
-        // ❗ Chỉ set JSON khi KHÔNG phải upload file
         ...(isFormData ? {} : { "Content-Type": "application/json" }),
         ...(options.headers || {}),
       },
     });
 
-    let data: any = null;
+    let data: T;
 
-    // Parse JSON an toàn
     try {
       data = await res.json();
     } catch {
       throw new Error("Server returned invalid JSON.");
     }
 
-    // Nếu lỗi từ server
     if (!res.ok) {
       let errorMessage = "Request failed";
+      const anyData: any = data;
 
-      if (typeof data.detail === "string") {
-        errorMessage = data.detail;
-      } else if (Array.isArray(data.detail)) {
-        errorMessage = data.detail[0]?.msg || errorMessage;
-      } else if (data.message) {
-        errorMessage = data.message;
-      } else if (data.error) {
-        errorMessage = data.error;
+      if (typeof anyData?.detail === "string") {
+        errorMessage = anyData.detail;
+      } else if (Array.isArray(anyData?.detail)) {
+        errorMessage = anyData.detail[0]?.msg || errorMessage;
+      } else if (anyData?.message) {
+        errorMessage = anyData.message;
+      } else if (anyData?.error) {
+        errorMessage = anyData.error;
       } else {
         errorMessage = `Request failed with status ${res.status}`;
       }
@@ -44,12 +45,13 @@ export async function api(path: string, options: RequestInit = {}) {
 
     return data;
   } catch (error: any) {
-    if (error.message.includes("Network request failed")) {
+    if (error.message?.includes("Network request failed")) {
       throw new Error("Cannot connect to server. Check your internet.");
     }
     throw error;
   }
 }
+
 
 // === AUTH API ===
 export const loginUser = (payload: { email: string; password: string }) =>
@@ -210,3 +212,68 @@ export const updateExpertArticleStatus = async (
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
   });
+
+export interface AdminPost {
+  _id: string;
+  content: string;
+  created_at: string;
+  moderation_status: "Approved" | "Pending" | "Blocked";
+  is_anonymous: boolean;
+  like_count: number;
+  comment_count: number;
+  username: string;
+  user_email: string;
+  author_display: string;
+  hashtags?: string[];
+}
+
+export const getAdminPosts = (
+  page = 1,
+  limit = 50,
+  status?: "Approved" | "Pending" | "Blocked"
+) => {
+  let url = `/api/v1/admin/posts?page=${page}&limit=${limit}`;
+
+  if (status) {
+    url += `&status=${status}`;
+  }
+
+  return api<AdminPost[]>(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+};
+
+// ===== COMMENTS =====
+
+export interface AdminComment {
+  _id: string;
+  post_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  moderation_status: "Approved" | "Pending" | "Blocked";
+  is_preset: boolean;
+  username: string;
+}
+
+export const getAdminComments = (
+  post_id: string,
+  limit = 50,
+  status?: "Approved" | "Pending" | "Blocked"
+) => {
+  let url = `/api/v1/admin/comments?post_id=${post_id}&limit=${limit}`;
+
+  if (status) {
+    url += `&status=${status}`;
+  }
+
+  return api<AdminComment[]>(url, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+};

@@ -1,167 +1,240 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 import { MessageCircle, ThumbsUp, User } from "lucide-react";
 import PostDetail from "./components/PostDetail";
+import { getAdminPosts, AdminPost } from "@/lib/api";
 
-const topics = [
-  { id: 1, name: "Mental Health" },
-  { id: 2, name: "Self-care" },
-  { id: 3, name: "Productivity" },
-  { id: 4, name: "Life Issues" },
-];
-
-interface Post {
-  id: number;
+interface SelectedPost {
   user: string;
-  topic: string;
   content: string;
   likes: number;
   comments: number;
   created_at: string;
 }
 
-const mockPosts: Post[] = [
-  {
-    id: 1,
-    user: "John Doe",
-    topic: "Mental Health",
-    content:
-      "I've been feeling overwhelmed lately. Any advice on how to manage stress better?",
-    likes: 12,
-    comments: 4,
-    created_at: "2 hours ago",
-  },
-];
+type PostStatus = "Approved" | "Pending" | "Blocked";
+
+const PAGE_SIZE = 5;
 
 export default function CommunityViewPage() {
   const searchParams = useSearchParams();
-  const keyword = (searchParams.get("topic") || "").toLowerCase();
+  const topicQuery = (searchParams.get("topic") || "").toLowerCase();
 
-  const [selectedTopic, setSelectedTopic] = useState("All");
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [allPosts, setAllPosts] = useState<AdminPost[]>([]);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<PostStatus>("Approved");
+
+  const [selectedPost, setSelectedPost] = useState<SelectedPost | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
-  // Tìm topic khớp từ khóa
-  const matchedTopics = topics.filter((t) =>
-    t.name.toLowerCase().includes(keyword)
-  );
 
-  // Lọc bài post
-  const filteredPosts =
-    keyword || selectedTopic !== "All"
-      ? mockPosts.filter((post) => {
-          if (keyword) {
-            return post.topic.toLowerCase().includes(keyword);
-          }
-          return post.topic === selectedTopic;
-        })
-      : mockPosts;
+  /* ================= FETCH ALL POSTS ONCE ================= */
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        setLoading(true);
+        // fetch "nhiều nhất có thể" (no status filter here)
+        const data = await getAdminPosts(1, 200);
+        setAllPosts(data);
+      } catch (error) {
+        console.error("Failed to fetch admin posts", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const noTopicFound = keyword && matchedTopics.length === 0;
-  const noPostsFound = filteredPosts.length === 0 && !noTopicFound;
+    fetchPosts();
+  }, []);
+
+  /* ================= FILTER BY STATUS + HASHTAG ================= */
+  const postsByStatus = useMemo(() => {
+    return allPosts.filter((post) => post.moderation_status === status);
+  }, [allPosts, status]);
+
+  const filteredByHashtag = useMemo(() => {
+    if (!topicQuery) return postsByStatus;
+
+    return postsByStatus.filter((post) =>
+      post.hashtags?.some((tag) => tag.toLowerCase() === topicQuery)
+    );
+  }, [postsByStatus, topicQuery]);
+
+  /* ================= PAGINATION (CLIENT SIDE) ================= */
+  const totalPages = Math.ceil(filteredByHashtag.length / PAGE_SIZE);
+
+  const pagedPosts = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredByHashtag.slice(start, start + PAGE_SIZE);
+  }, [filteredByHashtag, page]);
+
+  // reset page when search changes
+  useEffect(() => {
+    setPage(1);
+  }, [topicQuery]);
+  // reset page and close detail when status changes
+  useEffect(() => {
+    setPage(1);
+    setSelectedPost(null);
+    setSelectedPostId(null);
+    setDetailOpen(false);
+  }, [status]);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
   return (
-    <div className="p-1 grid grid-cols-[250px_1fr] gap-6 overflow-hidden">
-      {/* Sidebar */}
+    <div className="p-1 grid grid-cols-[250px_1fr] gap-6 overflow-y-hidden">
+      {/* ================= SIDEBAR (STATUS FILTER) ================= */}
       <Card className="h-fit">
         <CardHeader>
-          <CardTitle>Topics</CardTitle>
-
-          <p className="text-xs text-gray-500 mt-4">Topics you may like</p>
-
-          {keyword && (
-            <p className="text-xs text-gray-500 mt-1">
-              Showing results for: <b>{keyword}</b>
-            </p>
-          )}
+          <CardTitle>Status</CardTitle>
+          <p className="text-xs text-gray-500 mt-2">
+            Filter by moderation status
+          </p>
         </CardHeader>
 
         <CardContent className="space-y-2">
-          {/* Button: All Posts */}
-          <Button
-            variant={selectedTopic === "All" ? "default" : "outline"}
-            className="w-full"
-            onClick={() => setSelectedTopic("All")}
-          >
-            All Posts
-          </Button>
-
-          {/* Topic list */}
-          {matchedTopics.map((topic) => (
-            <Button
-              key={topic.id}
-              variant={selectedTopic === topic.name ? "default" : "outline"}
-              className="w-full"
-              onClick={() => {
-                setSelectedTopic(topic.name);
-              }}
-            >
-              {topic.name}
-            </Button>
-          ))}
-
-          {/* No topic found */}
-          {noTopicFound && (
-            <div className="text-center text-gray-500 py-3 text-sm">
-              There are no topics related to your search.
-            </div>
-          )}
+          {(["Approved", "Pending", "Blocked"] as PostStatus[]).map((s) => {
+            const count = allPosts.filter(
+              (p) => p.moderation_status === s
+            ).length;
+            return (
+              <Button
+                key={s}
+                variant={status === s ? "default" : "outline"}
+                className="w-full justify-between"
+                onClick={() => setStatus(s)}
+              >
+                {s}
+                <Badge variant="secondary" className="ml-2">
+                  {count}
+                </Badge>
+              </Button>
+            );
+          })}
         </CardContent>
       </Card>
 
-      {/* Posts section */}
-      <ScrollArea className="h-[85vh] pr-4">
-        {noPostsFound && (
-          <div className="text-center text-gray-500 py-10 text-sm">
-            There are no posts related to this topic.
+      {/* ================= POSTS ================= */}
+      <ScrollArea className="h-[80vh] pr-4">
+        {loading && (
+          <div className="text-center text-gray-500 py-10">
+            Loading posts...
           </div>
         )}
 
-        {filteredPosts.map((post) => (
-          <Card
-            key={post.id}
-            className="p-4 group relative mb-4 cursor-pointer"
-            onClick={() => {
-              setSelectedPost(post);
-              setDetailOpen(true);
-            }}
-          >
-            <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                <User size={20} />
+        {!loading && pagedPosts.length === 0 && (
+          <div className="text-center text-gray-500 py-10 text-sm">
+            No posts found.
+          </div>
+        )}
+
+        {pagedPosts.map((post) => {
+          const displayName = post.is_anonymous
+            ? "Anonymous"
+            : post.author_display;
+
+          return (
+            <Card
+              key={post._id}
+              className="p-4 group relative mb-4 cursor-pointer"
+              onClick={() => {
+                setSelectedPostId(post._id);
+                setSelectedPost({
+                  user: post.username,
+                  content: post.content,
+                  likes: post.like_count,
+                  comments: post.comment_count,
+                  created_at: new Date(post.created_at).toLocaleString(),
+                });
+                setDetailOpen(true);
+              }}
+            >
+              {/* USER */}
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                  <User size={20} />
+                </div>
+                <div>
+                  <p className="font-semibold">{displayName}</p>
+                  <p className="text-sm text-gray-500">
+                    {new Date(post.created_at).toLocaleString()}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="font-semibold">Anonymous User</p>
-                <p className="text-sm text-gray-500">{post.created_at}</p>
+
+              {/* REAL USERNAME */}
+              <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-xs bg-black text-white px-2 py-1 rounded">
+                Real: {post.username}
               </div>
-            </div>
-            {/* Reveal real name */}
-            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 text-xs bg-black text-white px-2 py-1 rounded">
-              Real: {post.user}
-            </div>
-            <Badge className="mb-3">{post.topic}</Badge>
-            <p>{post.content}</p>
-            <div className="flex gap-4 text-sm text-gray-600 mt-3">
-              <div className="flex items-center gap-1 cursor-pointer">
-                <ThumbsUp size={16} /> {post.likes}
+
+              {/* HASHTAGS */}
+              {post.hashtags && post.hashtags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {post.hashtags.map((tag) => (
+                    <span
+                      key={tag}
+                      className="text-xs text-[#7F56D9] font-medium"
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* CONTENT */}
+              <p className="mt-1">{post.content}</p>
+
+              {/* LIKE / COMMENT */}
+              <div className="flex gap-4 text-sm text-gray-600 mt-3">
+                <div className="flex items-center gap-1">
+                  <ThumbsUp size={16} /> {post.like_count}
+                </div>
+                <div className="flex items-center gap-1">
+                  <MessageCircle size={16} /> {post.comment_count}
+                </div>
               </div>
-              <div className="flex items-center gap-1 cursor-pointer">
-                <MessageCircle size={16} /> {post.comments}
-              </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
+
+        {/* ================= PAGINATION ================= */}
+        {totalPages > 1 && pagedPosts.length > 0 && (
+          <div className="flex justify-center gap-4 py-6">
+            <Button
+              variant="outline"
+              disabled={page === 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              Previous
+            </Button>
+
+            <span className="text-sm flex items-center">
+              Page {page} / {totalPages}
+            </span>
+
+            <Button
+              variant="outline"
+              disabled={page === totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Next
+            </Button>
+          </div>
+        )}
       </ScrollArea>
+
+      {/* ================= POST DETAIL ================= */}
       {selectedPost && (
         <PostDetail
           open={detailOpen}
           onClose={() => setDetailOpen(false)}
           post={selectedPost}
+          post_id={selectedPostId ?? undefined}
         />
       )}
     </div>
