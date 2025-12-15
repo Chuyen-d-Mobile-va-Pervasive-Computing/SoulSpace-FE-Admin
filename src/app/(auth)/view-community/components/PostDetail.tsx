@@ -6,10 +6,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { MessageCircle, Trash2, User, ThumbsUp } from "lucide-react";
 import { getAdminComments, AdminComment } from "@/lib/api";
+import { deleteAdminPost, deleteAdminComment } from "@/lib/api";
 
 interface PostDetailDialogProps {
   open: boolean;
@@ -32,6 +46,55 @@ export default function PostDetail({
 }: PostDetailDialogProps) {
   const [comments, setComments] = useState<AdminComment[]>([]);
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [reason, setReason] = useState("");
+  const [deleteCommentId, setDeleteCommentId] = useState<string | null>(null);
+  const [commentReason, setCommentReason] = useState("");
+  const [deletingComment, setDeletingComment] = useState(false);
+
+  const handleDeletePost = async () => {
+    if (!post_id || !reason.trim()) return;
+
+    try {
+      setDeleting(true);
+      await deleteAdminPost(post_id, reason);
+
+      toast.success("Post deleted successfully");
+
+      setConfirmOpen(false);
+      onClose(false);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to delete the post");
+    } finally {
+      setDeleting(false);
+      setReason("");
+    }
+  };
+
+  const handleDeleteComment = async () => {
+    if (!deleteCommentId || !commentReason.trim()) return;
+
+    try {
+      setDeletingComment(true);
+
+      await deleteAdminComment(deleteCommentId, commentReason);
+
+      toast.success("Comment deleted successfully");
+
+      // remove comment khỏi UI
+      setComments((prev) => prev.filter((cmt) => cmt._id !== deleteCommentId));
+
+      setDeleteCommentId(null);
+      setCommentReason("");
+    } catch (err: any) {
+      toast.error(
+        err?.response?.data?.message || "Failed to delete the comment"
+      );
+    } finally {
+      setDeletingComment(false);
+    }
+  };
 
   useEffect(() => {
     if (!open || !post_id) return;
@@ -82,6 +145,47 @@ export default function PostDetail({
           </div>
         </div>
 
+        <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+          <AlertDialogTrigger asChild>
+            <Button variant="destructive" className="mt-4">
+              <Trash2 className="mr-2" size={16} />
+              Delete Post
+            </Button>
+          </AlertDialogTrigger>
+
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete this post?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. The post will be permanently
+                removed and the user will be notified.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+
+            <div className="mt-4">
+              <label className="text-sm font-medium mb-1 block">
+                Reason for deletion
+              </label>
+              <Input
+                placeholder="e.g. Too toxic, spam, harassment..."
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+              />
+            </div>
+
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeletePost}
+                disabled={deleting || !reason.trim()}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {deleting ? "Deleting..." : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
         {/* COMMENTS */}
         <h3 className="font-semibold text-lg mb-3">Comments</h3>
 
@@ -106,12 +210,56 @@ export default function PostDetail({
               size="icon"
               variant="ghost"
               className="absolute top-2 right-2"
+              onClick={() => setDeleteCommentId(cmt._id)}
             >
               <Trash2 size={16} />
             </Button>
           </div>
         ))}
       </DialogContent>
+      <AlertDialog
+        open={!!deleteCommentId}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteCommentId(null);
+            setCommentReason("");
+          }
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this comment?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. The comment will be permanently
+              removed and the user will be notified.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className="mt-4">
+            <label className="text-sm font-medium mb-1 block">
+              Reason for deletion
+            </label>
+            <Input
+              placeholder="e.g. Spam, harassment, nonsense..."
+              value={commentReason}
+              onChange={(e) => setCommentReason(e.target.value)}
+            />
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deletingComment}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteComment}
+              disabled={deletingComment || !commentReason.trim()}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deletingComment ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }

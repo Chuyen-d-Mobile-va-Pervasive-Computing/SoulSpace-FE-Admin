@@ -232,7 +232,13 @@ export default function CommunityViewPage() {
       {selectedPost && (
         <PostDetail
           open={detailOpen}
-          onClose={() => setDetailOpen(false)}
+          onClose={(open) => {
+            setDetailOpen(open);
+            if (!open) {
+              // refetch posts
+              getAdminPosts(1, 200).then(setAllPosts);
+            }
+          }}
           post={selectedPost}
           post_id={selectedPostId ?? undefined}
         />

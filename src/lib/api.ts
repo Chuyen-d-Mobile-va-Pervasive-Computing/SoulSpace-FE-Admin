@@ -277,3 +277,41 @@ export const getAdminComments = (
     },
   });
 };
+
+export interface DeletePostResponse {
+  message: string;
+  post_id: string;
+  deleted_by: string;
+  deleted_at: string;
+}
+
+export const deleteAdminPost = (post_id: string, reason: string) =>
+  api<DeletePostResponse>(
+    `/api/v1/admin/posts/${post_id}?reason=${encodeURIComponent(reason)}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    }
+  );
+
+  // ===== DELETE COMMENT =====
+
+export interface DeleteCommentResponse {
+  message: string;
+  comment_id: string;
+  deleted_by: string;
+  deleted_at: string;
+}
+
+export const deleteAdminComment = (comment_id: string, reason: string) =>
+  api<DeleteCommentResponse>(
+    `/api/v1/admin/comments/${comment_id}?reason=${encodeURIComponent(reason)}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    }
+  );
