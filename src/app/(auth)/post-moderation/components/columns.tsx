@@ -8,8 +8,10 @@ import { Eye } from "lucide-react";
 import { ReportDetailSheet } from "./PostDetailSheet"; // nếu bạn có sheet này
 // (Theo file JSON bạn upload)
 export interface Report {
+  target_author_username: string;
+  target_content: string;
   _id: string;
-  reporter_id: string;
+  reporter_username: string;
   target_id: string;
   target_type: string;
   reason: string;
@@ -31,13 +33,13 @@ export const columns: (refreshData?: () => void) => ColumnDef<Report>[] = (
   },
 
   {
-    accessorKey: "reporter_id",
+    accessorKey: "reporter_username",
     header: () => (
       <Button variant="ghost" className="pl-0 bg-transparent">
         Reporter
       </Button>
     ),
-    cell: ({ row }) => <div>{row.getValue("reporter_id")}</div>,
+    cell: ({ row }) => <div>{row.getValue("reporter_username")}</div>,
   },
 
   {
@@ -77,7 +79,7 @@ export const columns: (refreshData?: () => void) => ColumnDef<Report>[] = (
       let badge = "bg-[#E0F7FA] text-[#00796B]"; // default
       if (value === "pending") badge = "bg-[#FFF4CC] text-[#E6A100]";
       if (value === "resolved") badge = "bg-[#CCF0EB] text-[#009688]";
-      if (value === "dismissed") badge = "bg-[#FCE8E6] text-[#C62828]";
+      if (value === "rejected") badge = "bg-[#FCE8E6] text-[#C62828]";
 
       return <Badge className={`${badge} border-none`}>{value}</Badge>;
     },
