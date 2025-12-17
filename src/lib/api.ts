@@ -16,17 +16,23 @@ export async function api<T = any>(
       },
     });
 
-    let data: T;
+    let data: T | null = null;
 
-    try {
-      data = await res.json();
-    } catch {
-      throw new Error("Server returned invalid JSON.");
+    const contentLength = res.headers.get("content-length");
+    if (contentLength !== "0") {
+      const text = await res.text();
+      if (text) {
+        try {
+          data = JSON.parse(text);
+        } catch {
+          throw new Error("Server returned invalid JSON.");
+        }
+      }
     }
 
     if (!res.ok) {
-      let errorMessage = "Request failed";
       const anyData: any = data;
+      let errorMessage = "Request failed";
 
       if (typeof anyData?.detail === "string") {
         errorMessage = anyData.detail;
@@ -43,7 +49,7 @@ export async function api<T = any>(
       throw new Error(errorMessage);
     }
 
-    return data;
+    return data as T;
   } catch (error: any) {
     if (error.message?.includes("Network request failed")) {
       throw new Error("Cannot connect to server. Check your internet.");
@@ -51,7 +57,6 @@ export async function api<T = any>(
     throw error;
   }
 }
-
 
 // === AUTH API ===
 export const loginUser = (payload: { email: string; password: string }) =>
@@ -93,23 +98,30 @@ export const rejectExpert = (profile_id: string, reason: string) =>
   });
 
 export const getAllTests = () =>
-  api("/api/v1/admin/tests", {
+  api("/api/v1/tests", {
     method: "GET",
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
     },
   });
 
-export const getTestById = (test_id: string, token: string) =>
-  api(`/api/v1/admin/tests/${test_id}`, {
+export const getQuestionsByTestCode = (
+  testCode: string,
+  token: string
+) =>
+  api(`/api/v1/tests/${testCode}/questions`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
     },
   });
 
-export const updateTestById = (test_id: string, payload: any, token: string) =>
-  api(`/api/v1/admin/tests/${test_id}`, {
+export const upsertTestByCode = (
+  testCode: string,
+  payload: any,
+  token: string
+) =>
+  api(`/api/v1/tests/${testCode}`, {
     method: "PUT",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -118,7 +130,7 @@ export const updateTestById = (test_id: string, payload: any, token: string) =>
   });
 
 export const createTest = (payload: any) =>
-  api("/api/v1/admin/tests", {
+  api("/api/v1/tests", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -139,8 +151,8 @@ export const changePassword = (payload: {
     body: JSON.stringify(payload),
   });
 
-export const deleteTestById = (test_id: string, token: string) =>
-  api(`/api/v1/admin/tests/${test_id}`, {
+export const deleteTestByCode = (testCode: string, token: string) =>
+  api(`/api/v1/tests/${testCode}`, {
     method: "DELETE",
     headers: {
       Authorization: `Bearer ${token}`,

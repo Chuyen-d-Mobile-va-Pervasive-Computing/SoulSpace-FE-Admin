@@ -6,39 +6,42 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Plus, Trash2 } from "lucide-react";
-import { getTestById, updateTestById, uploadTestImage } from "@/lib/api";
+import {
+  getQuestionsByTestCode,
+  uploadTestImage,
+  upsertTestByCode,
+} from "@/lib/api";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import ImageZoom from "@/components/ImageZoom";
+import { useSearchParams } from "next/navigation";
 
 interface AnswerOption {
-  option_id?: string; // nếu có -> update, nếu không -> tạo mới
   text: string;
   score: number;
 }
 
 interface Question {
-  _id?: string; // nếu có -> update, nếu không -> tạo mới
   text: string;
   answers: AnswerOption[];
 }
 
 export default function TestBuilderPage() {
   const params = useParams();
-  const testId = params?.id as string;
+  const testCode = params.id as string;
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
 
   // Test info states
   const [title, setTitle] = useState("");
-  const [testCode, setTestCode] = useState("");
   const [description, setDescription] = useState("");
   const [severeThreshold, setSevereThreshold] = useState<number | string>("");
   const [expertRecommendation, setExpertRecommendation] = useState("");
   const [imageUrl, setImageUrl] = useState("");
 
   const [questions, setQuestions] = useState<Question[]>([]);
+  const searchParams = useSearchParams();
 
   // Upload image handler
   const handleUploadImage = async (file: File) => {
@@ -53,48 +56,52 @@ export default function TestBuilderPage() {
     }
   };
 
+  useEffect(() => {
+    setTitle(searchParams.get("title") || "");
+    setDescription(searchParams.get("description") || "");
+    setSevereThreshold(
+      searchParams.get("severe_threshold")
+        ? Number(searchParams.get("severe_threshold"))
+        : ""
+    );
+    setExpertRecommendation(searchParams.get("expert_recommendation") || "");
+    setImageUrl(searchParams.get("image_url") || "");
+  }, []);
+
   // LOAD DATA FROM BACKEND
   useEffect(() => {
-    const fetchTest = async () => {
-      if (!testId) return;
-
-      const token =
-        typeof window !== "undefined" ? localStorage.getItem("token") : "";
+    const fetchData = async () => {
+      const token = localStorage.getItem("token") || "";
       if (!token) return;
 
       try {
         setLoading(true);
-        const res = await getTestById(testId, token);
 
-        // Fill test info
-        setTitle(res.title);
-        setTestCode(res.test_code);
-        setDescription(res.description);
-        setSevereThreshold(res.severe_threshold);
-        setExpertRecommendation(res.expert_recommendation);
-        setImageUrl(res.image_url);
+        const res = await getQuestionsByTestCode(testCode, token);
 
-        // Transform FE-friendly structure
-        const q = res.questions.map((q: any) => ({
-          _id: q._id,
+        if (!res || res.length === 0) {
+          setQuestions([]);
+          return;
+        }
+
+        const mapped = res.map((q: any) => ({
           text: q.question_text,
           answers: q.options.map((op: any) => ({
-            option_id: op._id, // giữ nguyên id để BE update đúng
             text: op.option_text,
-            score: op.score,
+            score: op.score_value,
           })),
         }));
 
-        setQuestions(q);
+        setQuestions(mapped);
       } catch (err) {
-        console.error("Failed to load test:", err);
+        toast.error("Failed to load questions");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTest();
-  }, [testId]);
+    fetchData();
+  }, [testCode]);
 
   // Add question
   const addQuestion = () => {
@@ -140,43 +147,36 @@ export default function TestBuilderPage() {
     try {
       const token = localStorage.getItem("token") || "";
       if (!token) {
-        toast.error("No token found!");
+        toast.error("No token");
         return;
       }
 
-      // Payload BE yêu cầu
       const payload = {
-        test: {
-          title,
-          description,
-          severe_threshold: Number(severeThreshold),
-          expert_recommendation: expertRecommendation,
-          image_url: imageUrl,
-        },
+        title,
+        description,
+        severe_threshold: Number(severeThreshold),
+        expert_recommendation: expertRecommendation,
+        image_url: imageUrl,
 
-        questions: questions.map((q, index) => ({
-          ...(q._id ? { _id: q._id } : {}), // nếu có id thì update, không thì tạo mới
+        questions: questions.map((q, qIndex) => ({
           question_text: q.text,
-          question_order: index + 1,
-
-          options: q.answers.map((ans, aIndex) => ({
-            ...(ans.option_id ? { option_id: ans.option_id } : {}),
+          question_order: qIndex + 1,
+          options: q.answers.map((ans) => ({
             option_text: ans.text,
-            score: ans.score ?? aIndex,
-            option_order: aIndex + 1,
+            score_value: ans.score,
           })),
         })),
       };
 
-      console.log("Payload update gửi lên:", payload);
-
-      await updateTestById(testId, payload, token);
+      await upsertTestByCode(testCode, payload, token);
 
       toast.success("Test updated successfully!");
       router.push("/test-management");
+      // wait for 1 second then reload
+      setTimeout(() => {}, 1000);
     } catch (err) {
       console.error(err);
-      toast.error("Failed to update test.");
+      toast.error("Update failed");
     }
   };
 
@@ -199,6 +199,7 @@ export default function TestBuilderPage() {
 
           <label>Description</label>
           <Textarea
+            className="resize-none"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
@@ -212,6 +213,7 @@ export default function TestBuilderPage() {
 
           <label>Expert Recommendation</label>
           <Textarea
+            className="resize-none"
             value={expertRecommendation}
             onChange={(e) => setExpertRecommendation(e.target.value)}
           />

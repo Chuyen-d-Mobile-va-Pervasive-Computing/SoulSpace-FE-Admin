@@ -141,21 +141,20 @@ export default function TestBuilderPage() {
 
       // 5️⃣ Chuẩn bị payload
       const payload = {
-        test: {
-          test_code: testCode,
-          title: testName,
-          description: description,
-          image_url: imageUrl,
-          severe_threshold: severe,
-          expert_recommendation: recommendation,
-        },
+        test_code: testCode,
+        title: testName,
+        description,
+        severe_threshold: severe,
+        expert_recommendation: recommendation,
+        self_care_guidance: "", // nếu chưa dùng
+        image_url: imageUrl,
+
         questions: questions.map((q, index) => ({
           question_text: q.text,
           question_order: index + 1,
           options: q.answers.map((ans, aIndex) => ({
             option_text: ans,
-            score: aIndex,
-            option_order: aIndex + 1,
+            score_value: aIndex, // ⚠️ BE dùng score_value
           })),
         })),
       };

@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ColumnDef } from "@tanstack/react-table";
 import { Trash2, Eye } from "lucide-react";
 import Link from "next/link";
-import { cn } from "@/lib/utils";
-import { deleteTestById } from "@/lib/api";
+import { deleteTestByCode } from "@/lib/api";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -17,10 +16,13 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 export interface Test {
+  description: string;
+  expert_recommendation: string;
+  image_url: string;
   _id: string;
   test_code: string;
   title: string;
-  questions?: any[];
+  num_questions: number;
   severe_threshold: number;
   action: string;
 }
@@ -66,12 +68,17 @@ export const columns: ColumnDef<Test>[] = [
     cell: ({ row }) => <div>{row.getValue("title")}</div>,
   },
   {
-    id: "num_questions",
-    header: "Number of Questions",
-    cell: ({ row }) => {
-      const questions = row.original.questions || [];
-      return <div>{questions.length}</div>;
-    },
+    accessorKey: "num_questions",
+    header: () => (
+      <Button
+        className="pl-0"
+        variant="ghost"
+        style={{ backgroundColor: "transparent" }}
+      >
+        Number of Questions
+      </Button>
+    ),
+    cell: ({ row }) => <div>{row.getValue("num_questions")}</div>,
   },
   {
     accessorKey: "severe_threshold",
@@ -97,9 +104,11 @@ export const columns: ColumnDef<Test>[] = [
       const handleDelete = async () => {
         try {
           const token = localStorage.getItem("token") || "";
-          await deleteTestById(post._id, token);
+          await deleteTestByCode(post.test_code, token);
 
           toast.success("Test deleted successfully!");
+          // Wait for 2 second and reload
+          await new Promise((resolve) => setTimeout(resolve, 2000));
           window.location.reload();
         } catch (err: any) {
           toast.error(err.message || "Failed to delete the test.");
@@ -108,8 +117,19 @@ export const columns: ColumnDef<Test>[] = [
 
       return (
         <div className="inline-flex justify-center items-center gap-2.5">
-          <Link href={`/test-management/update/${post._id}`}>
-            <Eye color="#7F56D9" className="hover:cursor-pointer" />
+          <Link
+            href={{
+              pathname: `/test-management/update/${post.test_code}`,
+              query: {
+                title: post.title,
+                description: post.description ?? "",
+                severe_threshold: post.severe_threshold,
+                expert_recommendation: post.expert_recommendation ?? "",
+                image_url: post.image_url ?? "",
+              },
+            }}
+          >
+            <Eye color="#7F56D9" className="cursor-pointer" />
           </Link>
 
           {/* DELETE DIALOG */}
