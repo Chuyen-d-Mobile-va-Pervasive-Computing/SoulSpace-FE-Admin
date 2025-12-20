@@ -193,12 +193,66 @@ export const resolveReport = async (
     },
   });
 
-export const getDashboardStats = (period: string, date?: string) => {
-  const query = date
-    ? `date=${date}`
-    : `period=${period}`;
+export const getDashboardStats = (period: string, date: string) => {
+  return api(
+    `/api/v1/admin/stats/dashboard/overview?date=${date}&period=${period}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    }
+  );
+};
 
-  return api(`/api/v1/admin/stats?${query}`, {
+export const getDashboardChart = (period: string) => {
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+
+  return api(
+    `/api/v1/admin/stats/dashboard/chart?date=${today}&period=${period}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    }
+  );
+};
+
+export const getEmotionDistribution = () => {
+  const month = new Date().toISOString().slice(0, 7); // YYYY-MM
+
+  return api(
+    `/api/v1/admin/stats/dashboard/emotions?month=${month}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    }
+  );
+};
+
+export const getPostsByTopic = () => {
+  return api(`/api/v1/admin/stats/topics`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+};
+
+export const getMostActiveUsers = () => {
+  return api(`/api/v1/admin/stats/users/energetic`, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+};
+
+export const getMostPositiveUsers = () => {
+  return api(`/api/v1/admin/stats/users/clean-posts`, {
     method: "GET",
     headers: {
       Authorization: `Bearer ${localStorage.getItem("token")}`,

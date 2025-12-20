@@ -1,3 +1,5 @@
+"use client";
+
 import StatCard from "./StatCard";
 import { TriangleAlert } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -12,6 +14,34 @@ export default function FlaggedPosts({
   selectedRange,
   date,
 }: FlaggedPostsProps) {
+  const [value, setValue] = useState(0);
+  const [trendValue, setTrendValue] = useState(0);
+  const [trend, setTrend] = useState<"up" | "down">("up");
+
+  const mapRangeToPeriod = {
+    Day: "day",
+    Week: "week",
+    Month: "month",
+    Year: "year",
+  } as const;
+
+  useEffect(() => {
+    if (!date) return;
+
+    async function load() {
+      const period = mapRangeToPeriod[selectedRange];
+      const data = await getDashboardStats(period, date);
+
+      const flagged = data.ai_flagged;
+
+      setValue(flagged.value);
+      setTrendValue(flagged.percent_change);
+      setTrend(flagged.trend === "down" ? "down" : "up");
+    }
+
+    load();
+  }, [selectedRange, date]);
+
   const getTrendPeriodText = (range: "Day" | "Week" | "Month" | "Year") => {
     switch (range) {
       case "Day":
@@ -25,28 +55,6 @@ export default function FlaggedPosts({
     }
   };
 
-  const [value, setValue] = useState(0);
-  const [trendValue, setTrendValue] = useState(0);
-  const [trend, setTrend] = useState<"up" | "down">("up");
-  const mapRangeToPeriod = {
-    Day: "today",
-    Week: "week",
-    Month: "month",
-    Year: "all",
-  };
-  const period = mapRangeToPeriod[selectedRange];
-
-  useEffect(() => {
-    async function load() {
-      const period = mapRangeToPeriod[selectedRange];
-      const data = await getDashboardStats(period, date);
-
-      setValue(data.reports.total);
-      setTrendValue(data.reports.in_period);
-      setTrend(data.users.in_period >= 0 ? "up" : "down");
-    }
-    load();
-  }, [selectedRange, date]);
   return (
     <StatCard
       title="AI Flagged Posts"

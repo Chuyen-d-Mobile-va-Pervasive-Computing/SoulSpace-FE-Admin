@@ -9,25 +9,29 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { useEffect, useState } from "react";
+import { getDashboardChart } from "@/lib/api";
 
-const data = [
-  { name: "Jan", value: 65 },
-  { name: "Feb", value: 59 },
-  { name: "March", value: 80 },
-  { name: "April", value: 81 },
-  { name: "May", value: 56 },
-  { name: "June", value: 55 },
-  { name: "July", value: 70 },
-  { name: "August", value: 75 },
-  { name: "September", value: 60 },
-  { name: "October", value: 90 },
-  { name: "November", value: 85 },
-  { name: "December", value: 95 },
-];
+interface LineGraphProps {
+  period?: "day" | "week" | "month" | "year";
+}
 
-export default function LineGraph() {
+export default function LineGraph({ period = "month" }: LineGraphProps) {
+  const [data, setData] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function load() {
+      const res = await getDashboardChart(period);
+
+      // 🔥 FIX Ở ĐÂY
+      setData(res.data || []);
+    }
+
+    load();
+  }, [period]);
+
   return (
-    <div className="w-full h-[350px] bg-white dark:bg-neutral-900 rounded-2xl p-4 shadow-sm">
+    <div className="w-full h-[350px] bg-white rounded-2xl p-4 shadow-sm">
       <ResponsiveContainer width="100%" height="85%">
         <LineChart
           data={data}
@@ -36,21 +40,19 @@ export default function LineGraph() {
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
 
           <XAxis
-            dataKey="name"
-            tick={{ fill: "#6b7280", fontSize: 11 }} // 👈 nhỏ lại ở đây
+            dataKey="label"
+            tick={{ fill: "#6b7280", fontSize: 11 }}
             axisLine={false}
             tickLine={false}
           />
 
           <YAxis
-            tickFormatter={(value) => `${value}%`}
             tick={{ fill: "#6b7280", fontSize: 12 }}
             axisLine={false}
             tickLine={false}
-            domain={[0, 100]}
           />
 
-          <Tooltip formatter={(value: number) => `${value}%`} />
+          <Tooltip />
 
           <Line
             type="monotone"

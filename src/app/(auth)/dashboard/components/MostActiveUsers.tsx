@@ -9,18 +9,35 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  Cell,
 } from "recharts";
+import { useEffect, useState } from "react";
+import { getMostActiveUsers } from "@/lib/api";
 
-const data = [
-  { name: "PLuynhhhh", posts: 632, reactions: 814 },
-  { name: "yanggg", posts: 752, reactions: 914 },
-  { name: "hehe", posts: 752, reactions: 914 },
-];
+const RANK_COLORS = ["#f59e0b", "#3b82f6", "#8b5cf6"];
+const DEFAULT_COLOR = "#94a3b8";
 
 export default function MostActiveUsers() {
+  const [data, setData] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function load() {
+      const res = await getMostActiveUsers();
+
+      const chartData = res.map((item: any) => ({
+        name: item.username,
+        posts: item.count,
+      }));
+
+      setData(chartData);
+    }
+
+    load();
+  }, []);
+
   return (
-    <div className="w-full h-[350px] bg-white dark:bg-neutral-900 rounded-2xl p-4 shadow-sm">
-      <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100">
+    <div className="w-full h-[350px] bg-white rounded-2xl p-4 shadow-sm">
+      <h2 className="text-lg font-semibold mb-4 text-gray-800">
         Most Active Users
       </h2>
 
@@ -28,37 +45,42 @@ export default function MostActiveUsers() {
         <BarChart
           data={data}
           layout="vertical"
-          margin={{ top: 10, right: 30, left: 60, bottom: 10 }}
+          margin={{ top: 10, right: 30, left: 80, bottom: 10 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-          <XAxis type="number" tick={{ fontSize: 12, fill: "#6b7280" }} />
+
+          <XAxis
+            type="number"
+            axisLine={false}
+            tickLine={false}
+            tick={{ fill: "#6b7280", fontSize: 12 }}
+          />
+
           <YAxis
             dataKey="name"
             type="category"
-            tick={{ fontSize: 13, fill: "#6b7280" }}
-            width={100}
+            width={120}
+            axisLine={false}
+            tickLine={false}
+            tick={{ fill: "#6b7280", fontSize: 13 }}
           />
+
           <Tooltip />
-          <Legend
-            verticalAlign="bottom"
-            height={36}
-            iconType="circle"
-            iconSize={10}
-          />
+          <Legend />
+
           <Bar
             dataKey="posts"
-            fill="#3b82f6"
-            name="post"
+            name="Interactions"
             barSize={14}
-            radius={[4, 4, 4, 4]}
-          />
-          <Bar
-            dataKey="reactions"
-            fill="#06b6d4"
-            name="reactions"
-            barSize={14}
-            radius={[4, 4, 4, 4]}
-          />
+            radius={[0, 4, 4, 0]}
+          >
+            {data.map((_, index) => (
+              <Cell
+                key={`cell-${index}`}
+                fill={RANK_COLORS[index] || DEFAULT_COLOR}
+              />
+            ))}
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
     </div>

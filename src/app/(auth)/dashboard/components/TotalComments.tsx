@@ -5,35 +5,40 @@ import { MessageCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getDashboardStats } from "@/lib/api";
 
-interface TotalCommentsProps {
+interface PositivePostsProps {
   selectedRange: "Day" | "Week" | "Month" | "Year";
   date: string;
 }
 
-export default function TotalComments({
+export default function PositivePosts({
   selectedRange,
   date,
-}: TotalCommentsProps) {
+}: PositivePostsProps) {
   const [value, setValue] = useState(0);
   const [trendValue, setTrendValue] = useState(0);
   const [trend, setTrend] = useState<"up" | "down">("up");
+
   const mapRangeToPeriod = {
-    Day: "today",
+    Day: "day",
     Week: "week",
     Month: "month",
-    Year: "all",
-  };
-  const period = mapRangeToPeriod[selectedRange];
+    Year: "year",
+  } as const;
 
   useEffect(() => {
+    if (!date) return;
+
     async function load() {
       const period = mapRangeToPeriod[selectedRange];
       const data = await getDashboardStats(period, date);
 
-      setValue(data.comments.total);
-      setTrendValue(data.comments.in_period);
-      setTrend(data.users.in_period >= 0 ? "up" : "down");
+      const positive = data.positive_posts;
+
+      setValue(positive.value);
+      setTrendValue(positive.percent_change);
+      setTrend(positive.trend === "down" ? "down" : "up");
     }
+
     load();
   }, [selectedRange, date]);
 
@@ -52,7 +57,7 @@ export default function TotalComments({
 
   return (
     <StatCard
-      title="Total Comments"
+      title="Positive Posts"
       value={value}
       icon={MessageCircle}
       iconBgColor="#C1EDCC"

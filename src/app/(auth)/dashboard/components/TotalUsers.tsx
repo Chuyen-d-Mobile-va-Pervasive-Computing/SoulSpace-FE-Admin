@@ -14,23 +14,28 @@ export default function TotalUsers({ selectedRange, date }: TotalUsersProps) {
   const [value, setValue] = useState(0);
   const [trendValue, setTrendValue] = useState(0);
   const [trend, setTrend] = useState<"up" | "down">("up");
+
   const mapRangeToPeriod = {
-    Day: "today",
+    Day: "day",
     Week: "week",
     Month: "month",
-    Year: "all",
-  };
-  const period = mapRangeToPeriod[selectedRange];
+    Year: "year",
+  } as const;
 
   useEffect(() => {
+    if (!date) return;
+
     async function load() {
       const period = mapRangeToPeriod[selectedRange];
       const data = await getDashboardStats(period, date);
 
-      setValue(data.users.total);
-      setTrendValue(data.users.in_period);
-      setTrend(data.users.in_period >= 0 ? "up" : "down");
+      const users = data.total_users;
+
+      setValue(users.value);
+      setTrendValue(users.percent_change);
+      setTrend(users.trend === "down" ? "down" : "up");
     }
+
     load();
   }, [selectedRange, date]);
 

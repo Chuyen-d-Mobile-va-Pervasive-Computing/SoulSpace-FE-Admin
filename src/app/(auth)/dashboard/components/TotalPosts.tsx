@@ -1,3 +1,5 @@
+"use client";
+
 import StatCard from "./StatCard";
 import { FileText } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -9,6 +11,34 @@ interface TotalPostsProps {
 }
 
 export default function TotalPosts({ selectedRange, date }: TotalPostsProps) {
+  const [value, setValue] = useState(0);
+  const [trendValue, setTrendValue] = useState(0);
+  const [trend, setTrend] = useState<"up" | "down">("up");
+
+  const mapRangeToPeriod = {
+    Day: "day",
+    Week: "week",
+    Month: "month",
+    Year: "year",
+  } as const;
+
+  useEffect(() => {
+    if (!date) return;
+
+    async function load() {
+      const period = mapRangeToPeriod[selectedRange];
+      const data = await getDashboardStats(period, date);
+
+      const posts = data.total_posts;
+
+      setValue(posts.value);
+      setTrendValue(posts.percent_change);
+      setTrend(posts.trend === "down" ? "down" : "up");
+    }
+
+    load();
+  }, [selectedRange, date]);
+
   const getTrendPeriodText = (range: "Day" | "Week" | "Month" | "Year") => {
     switch (range) {
       case "Day":
@@ -22,28 +52,6 @@ export default function TotalPosts({ selectedRange, date }: TotalPostsProps) {
     }
   };
 
-  const [value, setValue] = useState(0);
-  const [trendValue, setTrendValue] = useState(0);
-  const [trend, setTrend] = useState<"up" | "down">("up");
-  const mapRangeToPeriod = {
-    Day: "today",
-    Week: "week",
-    Month: "month",
-    Year: "all",
-  };
-  const period = mapRangeToPeriod[selectedRange];
-
-  useEffect(() => {
-    async function load() {
-      const period = mapRangeToPeriod[selectedRange];
-      const data = await getDashboardStats(period, date);
-
-      setValue(data.posts.total);
-      setTrendValue(data.posts.in_period);
-      setTrend(data.posts.in_period >= 0 ? "up" : "down");
-    }
-    load();
-  }, [selectedRange, date]);
   return (
     <StatCard
       title="Total Posts"

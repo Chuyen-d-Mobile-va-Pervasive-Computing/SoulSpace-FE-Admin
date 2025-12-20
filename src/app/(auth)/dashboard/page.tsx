@@ -32,6 +32,7 @@ import PostsByHashtag from "./components/PostByHastag";
 import PostsByType from "./components/PostByType";
 import MostActiveUsers from "./components/MostActiveUsers";
 import MostPositiveMembers from "./components/MostPositiveMembers";
+import { useState } from "react";
 
 export default function Page() {
   const [date, setDate] = React.useState<Date>(new Date());
@@ -47,6 +48,9 @@ export default function Page() {
   ];
 
   const formattedDate = date ? format(date, "yyyy-MM-dd") : "";
+  const [chartPeriod, setChartPeriod] = useState<
+    "day" | "week" | "month" | "year"
+  >("month");
 
   return (
     <div className="w-full flex-col">
@@ -109,15 +113,23 @@ export default function Page() {
               <ChevronDown color="#A8ABAD" />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem>Day</DropdownMenuItem>
-              <DropdownMenuItem>Week</DropdownMenuItem>
-              <DropdownMenuItem>Month</DropdownMenuItem>
-              <DropdownMenuItem>Year</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setChartPeriod("day")}>
+                Day
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setChartPeriod("week")}>
+                Week
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setChartPeriod("month")}>
+                Month
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setChartPeriod("year")}>
+                Year
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
         <div className="p-6">
-          <LineGraph />
+          <LineGraph period={chartPeriod} />
         </div>
       </div>
 
@@ -125,12 +137,6 @@ export default function Page() {
       <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
         <EmotionDistribution />
         <PostsByTopic />
-      </div>
-
-      {/* Fifth row */}
-      <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <PostsByHashtag />
-        <PostsByType />
       </div>
 
       {/* Sixth row */}
