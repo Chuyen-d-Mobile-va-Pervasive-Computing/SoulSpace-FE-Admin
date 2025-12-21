@@ -65,6 +65,30 @@ export const loginUser = (payload: { email: string; password: string }) =>
     body: JSON.stringify(payload),
   });
 
+export const getMe = () =>
+  api("/api/v1/auth/me", {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${localStorage.getItem("token")}`,
+    },
+  });
+
+export const forgotPassword = (payload: { email: string }) =>
+  api("/api/v1/auth/forgot-password", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
+export const resetPassword = (payload: {
+  email: string;
+  otp: string;
+  new_password: string;
+}) =>
+  api("/api/v1/auth/reset-password", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+
 export const getAllExperts = () =>
   api("/api/v1/admin/experts/all", {
     method: "GET",

@@ -20,6 +20,7 @@ import Image from "next/image";
 import { Menu, Transition } from "@headlessui/react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
+import { getMe } from "@/lib/api";
 const navItems = [
   {
     title: "Overview",
@@ -53,12 +54,22 @@ const navItems = [
   },
 ];
 
-function UserDropdown({ username, role }: { username: string; role: string }) {
+function UserDropdown({
+  username,
+  role,
+  avatarUrl,
+  onLogout,
+}: {
+  username: string;
+  role: string;
+  avatarUrl?: string;
+  onLogout?: () => void;
+}) {
   return (
     <Menu as="div" className="relative inline-block text-left">
       <Menu.Button className="inline-flex items-center gap-2 rounded-md px-3 py-2 hover:bg-gray-100">
         <img
-          src="https://i.pravatar.cc/40?img=26"
+          src={avatarUrl || "https://i.pravatar.cc/40?img=26"}
           alt="Avatar"
           className="h-10 w-10 rounded-full"
         />
@@ -96,15 +107,29 @@ function UserDropdown({ username, role }: { username: string; role: string }) {
             </Menu.Item>
             <Menu.Item>
               {({ active }) => (
-                <Link
-                  href="#"
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onLogout) {
+                      onLogout();
+                      return;
+                    }
+                    // Fallback inline logout
+                    if (typeof window !== "undefined") {
+                      localStorage.removeItem("token");
+                      localStorage.removeItem("username");
+                      localStorage.removeItem("role");
+                      localStorage.removeItem("avatar_url");
+                      window.location.href = "/login";
+                    }
+                  }}
                   className={cn(
-                    "block px-4 py-2 text-sm text-gray-700 hover:bg-[#E0D7F9]",
+                    "block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-[#E0D7F9]",
                     active ? "bg-gray-100" : ""
                   )}
                 >
                   Logout
-                </Link>
+                </button>
               )}
             </Menu.Item>
           </div>
@@ -117,9 +142,17 @@ function UserDropdown({ username, role }: { username: string; role: string }) {
 function Sidebar({
   isOpen,
   onClose,
+  avatarUrl,
+  onLogout,
+  username,
+  role,
 }: {
   isOpen: boolean;
   onClose: () => void;
+  avatarUrl?: string;
+  onLogout?: () => void;
+  username?: string;
+  role?: string;
 }) {
   const pathname = usePathname();
 
@@ -161,22 +194,37 @@ function Sidebar({
           <div className="flex items-center justify-between">
             <Link href="/profile" className="flex items-center gap-2">
               <img
-                src="https://i.pravatar.cc/40?img=26"
+                src={avatarUrl || "https://i.pravatar.cc/40?img=26"}
                 alt="Avatar"
                 className="h-10 w-10 rounded-full"
               />
               <div className="flex flex-col text-left">
-                <span className="text-sm font-medium">PLuynh</span>
-                <span className="text-xs text-gray-500">Admin</span>
+                <span className="text-sm font-medium">
+                  {username || "PLuynh"}
+                </span>
+                <span className="text-xs text-gray-500">{role || "Admin"}</span>
               </div>
             </Link>
-            <Link
-              href="#"
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                if (onLogout) {
+                  onLogout();
+                  return;
+                }
+                if (typeof window !== "undefined") {
+                  localStorage.removeItem("token");
+                  localStorage.removeItem("username");
+                  localStorage.removeItem("role");
+                  localStorage.removeItem("avatar_url");
+                  window.location.href = "/login";
+                }
+              }}
               className="bg-destructive flex items-center px-3 py-2 rounded-md text-sm font-medium hover:bg-gray-100 !text-white"
-              onClick={onClose}
             >
               Logout
-            </Link>
+            </button>
           </div>
         </div>
       </aside>
@@ -194,10 +242,14 @@ function Header({
   onToggleSidebar,
   username,
   role,
+  avatarUrl,
+  onLogout,
 }: {
   onToggleSidebar: () => void;
   username: string;
   role: string;
+  avatarUrl?: string;
+  onLogout?: () => void;
 }) {
   const [searchTopic, setSearchTopic] = useState("");
   const router = useRouter();
@@ -243,7 +295,12 @@ function Header({
       </form>
 
       <div className="hidden md:flex items-center space-x-4">
-        <UserDropdown username={username} role={role} />
+        <UserDropdown
+          username={username}
+          role={role}
+          avatarUrl={avatarUrl}
+          onLogout={onLogout}
+        />
       </div>
     </header>
   );
@@ -253,11 +310,51 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [username, setUsername] = useState("");
   const [role, setRole] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const router = useRouter();
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  const handleLogout = () => {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("token");
+      localStorage.removeItem("username");
+      localStorage.removeItem("role");
+      localStorage.removeItem("avatar_url");
+    }
+    // navigate to login
+    router.replace("/login");
+  };
 
   useEffect(() => {
-    setUsername(localStorage.getItem("username") || "");
-    setRole(localStorage.getItem("role") || "");
-  }, []);
+    // run only on client
+    if (typeof window === "undefined") return;
+
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.replace("/login");
+      return;
+    }
+
+    (async () => {
+      try {
+        setIsCheckingAuth(true);
+        const data: any = await getMe();
+        setUsername(data?.username || "");
+        setRole(data?.role || "");
+        setAvatarUrl(data?.avatar_url || "");
+        setIsCheckingAuth(false);
+      } catch (err) {
+        // on failure, clear storage and redirect to login
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("token");
+          localStorage.removeItem("username");
+          localStorage.removeItem("role");
+          localStorage.removeItem("avatar_url");
+        }
+        router.replace("/login");
+      }
+    })();
+  }, [router]);
 
   useEffect(() => {
     const handleResize = () => {
@@ -272,19 +369,37 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
   const closeSidebar = () => setIsSidebarOpen(false);
 
   return (
-    <div className="min-h-screen bg-gray-100 text-sm md:text-base">
-      <Header onToggleSidebar={toggleSidebar} username={username} role={role} />
-      <div className="flex pt-16">
-        <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
-        <main
-          className={cn(
-            "flex-1 overflow-y-auto p-2 lg:p-4 transition-all duration-300",
-            isSidebarOpen ? "ml-64" : "ml-4"
-          )}
-        >
-          {children}
-        </main>
+    // don't render any protected UI until auth check finishes to avoid flash
+    isCheckingAuth ? (
+      <div className="min-h-screen bg-white" />
+    ) : (
+      <div className="min-h-screen bg-gray-100 text-sm md:text-base">
+        <Header
+          onToggleSidebar={toggleSidebar}
+          username={username}
+          role={role}
+          avatarUrl={avatarUrl}
+          onLogout={handleLogout}
+        />
+        <div className="flex pt-16">
+          <Sidebar
+            isOpen={isSidebarOpen}
+            onClose={closeSidebar}
+            avatarUrl={avatarUrl}
+            onLogout={handleLogout}
+            username={username}
+            role={role}
+          />
+          <main
+            className={cn(
+              "flex-1 overflow-y-auto p-2 lg:p-4 transition-all duration-300",
+              isSidebarOpen ? "ml-64" : "ml-4"
+            )}
+          >
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    )
   );
 }

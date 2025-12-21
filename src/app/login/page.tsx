@@ -121,6 +121,14 @@ export default function PageLogin() {
                 </FormItem>
               )}
             />
+            <div className="w-full flex justify-end">
+              <p
+                className="text-[14px] italic text-[#7F56D9] cursor-pointer"
+                onClick={() => router.push("/forgot-password")}
+              >
+                Forgot password?
+              </p>
+            </div>
 
             {/* Submit */}
             <Button
