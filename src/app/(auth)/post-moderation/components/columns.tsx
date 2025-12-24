@@ -93,9 +93,15 @@ export const columns: (refreshData?: () => void) => ColumnDef<Report>[] = (
       </Button>
     ),
     cell: ({ row }) => {
-      const dt = new Date(
-        row.getValue("created_at") as string
-      ).toLocaleString();
+      const raw = row.getValue("created_at") as string;
+
+      const normalized =
+        raw.includes("Z") || raw.includes("+") ? raw : `${raw}Z`;
+
+      const dt = new Date(normalized).toLocaleString("vi-VN", {
+        timeZone: "Asia/Ho_Chi_Minh",
+      });
+
       return <div>{dt}</div>;
     },
   },

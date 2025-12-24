@@ -315,6 +315,7 @@ export interface AdminPost {
   user_email: string;
   author_display: string;
   hashtags?: string[];
+  image_url?: string | null;
 }
 
 export const getAdminPosts = (

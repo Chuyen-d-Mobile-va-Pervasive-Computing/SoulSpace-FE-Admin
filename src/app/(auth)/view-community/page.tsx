@@ -16,11 +16,13 @@ interface SelectedPost {
   likes: number;
   comments: number;
   created_at: string;
+  image_url?: string | null;
+  hashtags?: string[];
 }
 
 type PostStatus = "Approved" | "Pending" | "Blocked";
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
 export default function CommunityViewPage() {
   const searchParams = useSearchParams();
@@ -150,6 +152,8 @@ export default function CommunityViewPage() {
                   likes: post.like_count,
                   comments: post.comment_count,
                   created_at: new Date(post.created_at).toLocaleString(),
+                  image_url: post.image_url ?? null,
+                  hashtags: post.hashtags,
                 });
                 setDetailOpen(true);
               }}
@@ -175,10 +179,10 @@ export default function CommunityViewPage() {
               {/* HASHTAGS */}
               {post.hashtags && post.hashtags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-2">
-                  {post.hashtags.map((tag) => (
+                  {post.hashtags.map((tag, idx) => (
                     <span
-                      key={tag}
-                      className="text-xs text-[#7F56D9] font-medium"
+                      key={`${tag}-${idx}`}
+                      className="text-[14px] text-[#7F56D9] font-medium"
                     >
                       #{tag}
                     </span>
@@ -188,6 +192,21 @@ export default function CommunityViewPage() {
 
               {/* CONTENT */}
               <p className="mt-1">{post.content}</p>
+
+              {post.image_url && (
+                <div className="mt-3">
+                  <img
+                    src={post.image_url}
+                    alt="post image"
+                    className="w-full max-h-[350px] object-contain rounded-lg border"
+                    loading="lazy"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).style.display =
+                        "none";
+                    }}
+                  />
+                </div>
+              )}
 
               {/* LIKE / COMMENT */}
               <div className="flex gap-4 text-sm text-gray-600 mt-3">
@@ -230,18 +249,20 @@ export default function CommunityViewPage() {
 
       {/* ================= POST DETAIL ================= */}
       {selectedPost && (
-        <PostDetail
-          open={detailOpen}
-          onClose={(open) => {
-            setDetailOpen(open);
-            if (!open) {
-              // refetch posts
-              getAdminPosts(1, 200).then(setAllPosts);
-            }
-          }}
-          post={selectedPost}
-          post_id={selectedPostId ?? undefined}
-        />
+        <div className="w-[90%]">
+          <PostDetail
+            open={detailOpen}
+            onClose={(open) => {
+              setDetailOpen(open);
+              if (!open) {
+                // refetch posts
+                getAdminPosts(1, 200).then(setAllPosts);
+              }
+            }}
+            post={selectedPost}
+            post_id={selectedPostId ?? undefined}
+          />
+        </div>
       )}
     </div>
   );

@@ -34,6 +34,8 @@ interface PostDetailDialogProps {
     likes: number;
     comments: number;
     created_at: string;
+    image_url?: string | null;
+    hashtags?: string[];
   };
   post_id?: string;
 }
@@ -116,7 +118,7 @@ export default function PostDetail({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="!w-1/2 max-h-[90vh] overflow-y-auto p-6">
+      <DialogContent className="!w-2/3 max-h-[90vh] overflow-y-auto p-6">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">Post Details</DialogTitle>
         </DialogHeader>
@@ -132,8 +134,35 @@ export default function PostDetail({
           </div>
         </div>
 
+        {post.hashtags && post.hashtags.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-2">
+            {post.hashtags.map((tag, idx) => (
+              <span
+                key={`${tag}-${idx}`}
+                className="text-[14px] text-[#7F56D9] font-medium"
+              >
+                #{tag}
+              </span>
+            ))}
+          </div>
+        )}
+
         {/* CONTENT */}
         <p className="text-gray-800 mb-4">{post.content}</p>
+
+        {post.image_url && (
+          <div className="mt-3">
+            <img
+              src={post.image_url}
+              alt="post image"
+              className="w-full max-h-[350px] object-contain rounded-lg border"
+              loading="lazy"
+              onError={(e) => {
+                (e.currentTarget as HTMLImageElement).style.display = "none";
+              }}
+            />
+          </div>
+        )}
 
         {/* LIKE & COMMENT COUNT */}
         <div className="flex gap-4 text-sm text-gray-600 mb-6">
